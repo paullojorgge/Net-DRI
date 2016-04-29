@@ -38,6 +38,8 @@ sub parse_sidn
  my ($po,$otype,$oaction,$oname,$rinfo)=@_;
  my $mes=$po->message();
  return unless $mes->is_success();
+ return unless defined drp_parse($mes,$otype,$rinfo); # quick fix for strange drp poll message
+
  my $node=$mes->get_response('sidn','pollData');
  return unless defined $node;
 
@@ -175,6 +177,33 @@ sub supply_parse
   }
  }
  return $oname;
+}
+
+sub drp_parse
+{
+ my ($mes,$otype,$rinfo)=@_;
+ foreach my $el (Net::DRI::Util::xml_list_children($mes->node_resdata())) {
+  $otype = 'drp' unless defined $otype;
+  # TODO: they might have other elements for $name, $name2 and $names3?
+  my ($name, $content)=@$el;
+  if (lc($name) =~ m/^(drseppresponse)$/) {
+   foreach my $el2 (Net::DRI::Util::xml_list_children($content)) {
+    my ($name2, $content2)=@$el2;
+    if (lc($name2) =~ m/^(domainrenewresponse)$/) {
+     foreach my $el3 (Net::DRI::Util::xml_list_children($content2)) {
+      my ($name3, $content3)=@$el3;
+      if (lc($name3) =~ m/^(domeinnaam|procesresultaat|transactie|deelnemer|email)$/) {
+       foreach my $el4 (Net::DRI::Util::xml_list_children($content3)) {
+        my ($name4, $content4)=@$el4;
+        $rinfo->{$otype}->{drp}->{lc($name4)}=$content4->textContent() if $content4;
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+ return $rinfo;
 }
 
 ####################################################################################################
