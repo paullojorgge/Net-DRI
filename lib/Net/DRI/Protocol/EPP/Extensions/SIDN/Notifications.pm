@@ -189,7 +189,7 @@ sub drp_parse
   if (lc($name) =~ m/^(drseppresponse)$/) {
    foreach my $el2 (Net::DRI::Util::xml_list_children($content)) {
     my ($name2, $content2)=@$el2;
-    if (lc($name2) =~ m/^(domainrenewresponse)$/) {
+    if (lc($name2) =~ m/^(domainrenewresponse|domainrenewsidnresponse)$/) {
      foreach my $el3 (Net::DRI::Util::xml_list_children($content2)) {
       my ($name3, $content3)=@$el3;
       if (lc($name3) =~ m/^(domeinnaam|procesresultaat|transactie|deelnemer|email)$/) {

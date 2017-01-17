@@ -9,7 +9,7 @@ use Net::DRI::Data::Raw;
 use DateTime;
 use DateTime::Duration;
 
-use Test::More tests => 93;
+use Test::More tests => 108;
 eval { no warnings; require Test::LongString; Test::LongString->import(max => 100); $Test::LongString::Context=50; };
 if ( $@ ) { no strict 'refs'; *{'main::is_string'}=\&main::is; }
 
@@ -109,8 +109,8 @@ $d=$rc->get_data('message',100006,'acDate');
 isa_ok($d,'DateTime','notification domain:transfer-start acDate');
 is("".$d,'2009-11-03T13:06:34','notification domain:transfer-start acDate value');
 is($rc->get_data('message',100006,'svtrid'),'100027','notification domain:transfer-start svtrid');
-## drp poll message
-$R2=$E1.'<response>'.r(1301,'The message has been picked up. Please confirm receipt to remove the message from the queue.').'<msgQ count="4" id="100007"><qDate>2016-04-25T23:02:42.000Z</qDate><msg>1053 expiratiedatum domeinnaam saint-laurent.amsterdam is verlengd</msg></msgQ><resData><drp:DrsEppResponse xmlns:drp="http://sidn.nl/drsepp/drp"><drp:DomainRenewResponse><drp:Domeinnaam><drp:domeinnaam>foo-bar.amsterdam</drp:domeinnaam><drp:verloopDatum>2017-05-22T13:14:15.000Z</drp:verloopDatum></drp:Domeinnaam><drp:Procesresultaat><drp:resultaatcode>DRS_4080</drp:resultaatcode><drp:message>The domain name has been renewed.</drp:message></drp:Procesresultaat><drp:Transactie><drp:ticketnummer>987654</drp:ticketnummer><drp:deelnemerTicketnummer>NET-DRI-0.9-TDW-AMSTERDAM-3196-1555666777888999</drp:deelnemerTicketnummer></drp:Transactie><drp:Deelnemer><drp:deelnemerNummer>123456</drp:deelnemerNummer><drp:correspondentieTaal>eng</drp:correspondentieTaal></drp:Deelnemer><drp:Email><drp:correspondentieCode>DOMAINRENEWOK</drp:correspondentieCode><drp:emailAdres>foo@bar.com</drp:emailAdres></drp:Email></drp:DomainRenewResponse></drp:DrsEppResponse></resData>'.$TRID.'</response>'.$E2;
+## drp poll message1 (DOMAINRENEWOK)
+$R2=$E1.'<response>'.r(1301,'The message has been picked up. Please confirm receipt to remove the message from the queue.').'<msgQ count="4" id="100007"><qDate>2016-04-25T23:02:42.000Z</qDate><msg>1053 expiratiedatum domeinnaam foo-bar.amsterdam is verlengd</msg></msgQ><resData><drp:DrsEppResponse xmlns:drp="http://sidn.nl/drsepp/drp"><drp:DomainRenewResponse><drp:Domeinnaam><drp:domeinnaam>foo-bar.amsterdam</drp:domeinnaam><drp:verloopDatum>2017-05-22T13:14:15.000Z</drp:verloopDatum></drp:Domeinnaam><drp:Procesresultaat><drp:resultaatcode>DRS_4080</drp:resultaatcode><drp:message>The domain name has been renewed.</drp:message></drp:Procesresultaat><drp:Transactie><drp:ticketnummer>987654</drp:ticketnummer><drp:deelnemerTicketnummer>NET-DRI-0.9-TDW-AMSTERDAM-3196-1555666777888999</drp:deelnemerTicketnummer></drp:Transactie><drp:Deelnemer><drp:deelnemerNummer>123456</drp:deelnemerNummer><drp:correspondentieTaal>eng</drp:correspondentieTaal></drp:Deelnemer><drp:Email><drp:correspondentieCode>DOMAINRENEWOK</drp:correspondentieCode><drp:emailAdres>foo@bar.com</drp:emailAdres></drp:Email></drp:DomainRenewResponse></drp:DrsEppResponse></resData>'.$TRID.'</response>'.$E2;
 $rc=$dri->message_retrieve();
 is($rc->is_success(),1,'message_retrieve is_success');
 is_string($R1,$E1.'<command><poll op="req"/><clTRID>ABC-12345</clTRID></command>'.$E2,'message_retrieve build xml');
@@ -121,12 +121,30 @@ is($rc->get_data('message',100007,'deelnemernummer'),123456,'notification drp de
 is($rc->get_data('message',100007,'domeinnaam'),'foo-bar.amsterdam','notification drp domeinnaam');
 is($rc->get_data('message',100007,'emailadres'),'foo@bar.com','notification drp emailadres');
 is($rc->get_data('message',100007,'ticketnummer'),'987654','notification drp ticketnummer');
-is($rc->get_data('message',100007,'content'),'1053 expiratiedatum domeinnaam saint-laurent.amsterdam is verlengd','notification drp content');
+is($rc->get_data('message',100007,'content'),'1053 expiratiedatum domeinnaam foo-bar.amsterdam is verlengd','notification drp content');
 is($rc->get_data('message',100007,'verloopdatum'),'2017-05-22T13:14:15.000Z','notification drp verloopdatum');
 is($rc->get_data('message',100007,'correspondentiecode'),'DOMAINRENEWOK','notification drp correspondentiecode');
 is($rc->get_data('message',100007,'resultaatcode'),'DRS_4080','notification drp resultaatcode');
 is($rc->get_data('message',100007,'deelnemerticketnummer'),'NET-DRI-0.9-TDW-AMSTERDAM-3196-1555666777888999','notification drp deelnemerticketnummer');
 is($rc->get_data('message',100007,'message'),'The domain name has been renewed.','notification drp message');
+## drp poll message2 (DOMAINRENEWSIDNOK)
+$R2=$E1.'<response>'.r(1301,'The message has been picked up. Please confirm receipt to remove the message from the queue.').'<msgQ count="5" id="100008"><qDate>2017-01-11T00:15:03.000Z</qDate><msg>1054 expiratiedatum domeinnaam foo-bar2.amsterdam is automatisch verlengd</msg></msgQ><resData><drp:DrsEppResponse xmlns:drp="http://sidn.nl/drsepp/drp"><drp:DomainRenewSidnResponse><drp:Domeinnaam><drp:domeinnaam>foo-bar2.amsterdam</drp:domeinnaam><drp:verloopDatum>2018-01-11T15:32:04.000Z</drp:verloopDatum></drp:Domeinnaam><drp:Procesresultaat><drp:resultaatcode>DRS_4082</drp:resultaatcode><drp:message>The domain name\'s registration period has been renewed automatically.</drp:message></drp:Procesresultaat><drp:Transactie><drp:ticketnummer>522415</drp:ticketnummer><drp:deelnemerTicketnummer xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/></drp:Transactie><drp:Deelnemer><drp:deelnemerNummer>221001</drp:deelnemerNummer><drp:correspondentieTaal>dut</drp:correspondentieTaal></drp:Deelnemer><drp:Email><drp:correspondentieCode>DOMAINRENEWSIDNOK</drp:correspondentieCode><drp:emailAdres>foo@bar.com</drp:emailAdres></drp:Email></drp:DomainRenewSidnResponse></drp:DrsEppResponse></resData>'.$TRID.'</response>'.$E2;
+$rc=$dri->message_retrieve();
+is($rc->is_success(),1,'message_retrieve is_success');
+is_string($R1,$E1.'<command><poll op="req"/><clTRID>ABC-12345</clTRID></command>'.$E2,'message_retrieve build xml');
+is($rc->get_data('message',100008,'object_type'),'drp','notification drp object_type');
+is($rc->get_data('message',100008,'name'),'drp','notification drp name');
+is($rc->get_data('message',100008,'correspondentietaal'),'dut','notification drp correspondentietaal');
+is($rc->get_data('message',100008,'deelnemernummer'),221001,'notification drp deelnemernummer');
+is($rc->get_data('message',100008,'domeinnaam'),'foo-bar2.amsterdam','notification drp domeinnaam');
+is($rc->get_data('message',100008,'emailadres'),'foo@bar.com','notification drp emailadres');
+is($rc->get_data('message',100008,'ticketnummer'),'522415','notification drp ticketnummer');
+is($rc->get_data('message',100008,'content'),'1054 expiratiedatum domeinnaam foo-bar2.amsterdam is automatisch verlengd','notification drp content');
+is($rc->get_data('message',100008,'verloopdatum'),'2018-01-11T15:32:04.000Z','notification drp verloopdatum');
+is($rc->get_data('message',100008,'correspondentiecode'),'DOMAINRENEWSIDNOK','notification drp correspondentiecode');
+is($rc->get_data('message',100008,'resultaatcode'),'DRS_4082','notification drp resultaatcode');
+is($rc->get_data('message',100008,'deelnemerticketnummer'),'','notification drp deelnemerticketnummer');
+is($rc->get_data('message',100008,'message'),'The domain name\'s registration period has been renewed automatically.','notification drp message');
 
 ## poll (op="ack")
 $R2=$E1.'<response>'.r().$TRID.'</response>'.$E2;
