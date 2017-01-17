@@ -1,6 +1,6 @@
-## Domain Registry Interface, EPP Message for EURid
+## Domain Registry Interface, EPP Status for .SI
 ##
-## Copyright (c) 2005,2006,2008-2010,2013 Patrick Mevzek <netdri@dotandco.com>. All rights reserved.
+## Copyright (c) 2016 Patrick Mevzek <netdri@dotandco.com>. All rights reserved.
 ##
 ## This file is part of Net::DRI
 ##
@@ -12,16 +12,19 @@
 ## See the LICENSE file that comes with this distribution for more details.
 ####################################################################################################
 
-package Net::DRI::Protocol::EPP::Extensions::EURid::Message;
+package Net::DRI::Protocol::EPP::Extensions::ARNES::Status;
+
+use base qw!Net::DRI::Protocol::EPP::Core::Status!;
 
 use strict;
 use warnings;
+use feature 'state';
 
 =pod
 
 =head1 NAME
 
-Net::DRI::Protocol::EPP::Extensions::EURid::Message - EPP EURid Message for Net::DRI
+Net::DRI::Protocol::EPP::Extensions::ARNES::Status - EPP .SI Status for Net::DRI
 
 =head1 DESCRIPTION
 
@@ -45,7 +48,7 @@ Patrick Mevzek, E<lt>netdri@dotandco.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005,2006,2008-2010,2013 Patrick Mevzek <netdri@dotandco.com>.
+Copyright (c) 2016 Patrick Mevzek <netdri@dotandco.com>.
 All rights reserved.
 
 This program is free software; you can redistribute it and/or modify
@@ -59,32 +62,24 @@ See the LICENSE file that comes with this distribution for more details.
 
 ####################################################################################################
 
-sub register_commands
+sub new
 {
- my ($class,$version)=@_;
- return { 'message' => { 'result' => [ undef, \&parse ] } };
+ my $class=shift;
+ my $self=$class->SUPER::new(shift);
+
+ state $rs={ 'active' => 'inactive' };
+ $self->_register_pno($rs); ## this will overwrite what has been done in SUPER::new
+ return $self;
 }
 
-sub parse
+sub is_core_status
 {
- my ($po,$otype,$oaction,$oname,$rinfo)=@_;
- my $mes=$po->message();
-
- ## Parse eurid:ext
- my $result=$mes->get_extension('eurid','ext');
- return unless $result;
- my $ns=$mes->ns('eurid');
- $result=$result->getChildrenByTagNameNS($ns,'result');
- return unless $result->size();
- $result=$result->get_node(1);
-
- ## We add it to the latest status extra_info seen.
- foreach my $el ($result->getChildrenByTagNameNS($ns,'msg'))
- {
-  $mes->add_to_extra_info({from => 'eurid', type => 'text', message => $el->textContent()});
- }
- return;
+ return (shift=~m/^(?:client(?:Hold|(?:Delete|Renew|Update|Transfer)Prohibited)|inactive)$/);
 }
+
+sub is_active    { return shift->has_not(qw/clientHold serverHold inactive pendingQuarantine pendingLegislativeReturnQuarantine pendingLegislativeReturn/); }
+sub is_published { return shift->has_not(qw/clientHold serverHold inactive pendingQuarantine pendingLegislativeReturnQuarantine pendingLegislativeReturn/); }
+sub is_pending   { return shift->has_any(qw/pendingCreate pendingDelete pendingRenew pendingTransfer pendingUpdate pendingLegislativeReturn pendingLegislativeReturnQuarantine pendingQuarantine/); }
 
 ####################################################################################################
 1;

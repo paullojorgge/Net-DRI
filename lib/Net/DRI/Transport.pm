@@ -18,7 +18,7 @@ use strict;
 use warnings;
 
 use base qw(Class::Accessor::Chained::Fast Net::DRI::BaseClass);
-__PACKAGE__->mk_accessors(qw/name version retry pause trace timeout defer current_state has_state is_sync time_creation time_open time_used trid_factory logging/);
+__PACKAGE__->mk_accessors(qw/name version retry pause trace timeout last_error hold_down defer current_state has_state is_sync time_creation time_open time_used trid_factory logging/);
 
 use Net::DRI::Exception;
 
@@ -98,6 +98,8 @@ sub new
            retry     => exists($ropts->{retry})?   $ropts->{retry}   : 2,  ## by default, we will try once only
            pause     => exists($ropts->{pause})?   $ropts->{pause}   : 10, ## time in seconds to wait between two retries
            timeout   => exists($ropts->{timeout})? $ropts->{timeout} : 60,
+           last_error => undef, # set automatically in Registry.pm
+           hold_down  => exists($ropts->{hold_down})? $ropts->{hold_down} : undef, # if enabled, connection will not retry for x seconds
            defer     => exists($ropts->{defer})?   $ropts->{defer}   : 0, ## defer opening connection as long as possible (irrelevant if stateless) ## XX maybe not here, too low
            logging   => $ndr->logging(),
            trid_factory => (exists($ropts->{trid}) && (ref($ropts->{trid}) eq 'CODE'))? $ropts->{trid} : $ndr->trid_factory(),
@@ -145,7 +147,7 @@ sub parse_ssl_options
 
  $s{SSL_cipher_list}=exists $ropts->{ssl_cipher_list} ? $ropts->{ssl_cipher_list} : 'SSLv3:TLSv1:!aNULL:!eNULL';
  $s{SSL_hostname}=$ropts->{ssl_hostname} if exists $ropts->{ssl_hostname}; # defaults to servers hostname, set blank to disable SNI
-
+ $s{verify_hostname}=$ropts->{verify_hostname} if exists $ropts->{verify_hostname};
  return \%s;
 }
 

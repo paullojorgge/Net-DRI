@@ -1003,6 +1003,7 @@ sub contact_delete
 {
  my ($self,$ndr,$contact,$ep)=@_;
  $self->err_invalid_contact($contact) unless (Net::DRI::Util::isa_contact($contact) && $contact->srid());
+ $contact->init('delete',$ndr) if $contact->can('init');
  $ep=Net::DRI::Util::create_params('contact_delete',$ep);
  my $rc=$ndr->process('contact','delete',[$contact,$ep]);
  return $rc;
@@ -1013,6 +1014,7 @@ sub contact_info
  my ($self,$ndr,$contact,$ep)=@_;
  $self->err_invalid_contact($contact) unless (Net::DRI::Util::isa_contact($contact) && $contact->srid());
  $ep=Net::DRI::Util::create_params('contact_info',$ep);
+ $contact->init('info',$ndr) if $contact->can('init');
  my $rc=$ndr->try_restore_from_cache('contact',$contact->srid(),'info');
  if (! defined $rc) { $rc=$ndr->process('contact','info',[$contact,$ep]); }
  return $rc;
@@ -1230,7 +1232,7 @@ sub message_count
 ##       this whole part would need to be redefined, see TODO file
 ####################################################################################################
 
-## For AFNIC ARNES (subclassed) BE EURid LU
+## For AFNIC ARNES (subclassed) BE EURid LU RO
 sub domain_trade_start
 {
  my ($self,$ndr,$domain,$rd)=@_;
@@ -1296,7 +1298,7 @@ sub domain_transfer_quarantine
 sub domain_transfer_quarantine_start { my ($self,$ndr,$domain,$rd)=@_; return $self->domain_transfer_quarantine($ndr,$domain,'start',$rd); }
 sub domain_transfer_quarantine_stop  { my ($self,$ndr,$domain,$rd)=@_; return $self->domain_transfer_quarantine($ndr,$domain,'stop',$rd); }
 
-## nsgroup_* + keygroup_* 
+## nsgroup_* + keygroup_*
 ## For BE EUrid
 sub nsgroup_create
 {
@@ -1321,9 +1323,9 @@ sub nsgroup_check
 
 sub nsgroup_info
 {
- my ($self,$ndr,$nsg)=@_;
+ my ($self,$ndr,$nsg,$rd)=@_;
  Net::DRI::Exception::usererr_insufficient_parameters('nsgroup_info needs an hosts object') unless defined Net::DRI::Util::isa_nsgroup($nsg);
- return $ndr->process('nsgroup','info',[$nsg]);
+ return $ndr->process('nsgroup','info',[$nsg,$rd]);
 }
 
 sub nsgroup_update
@@ -1384,16 +1386,17 @@ sub account_list_domains
 # Afilias (and maybe others) starting to to have registrar as an object
 sub registrar_info
 {
- my ($self,$ndr,$rd)=@_;
- $rd= $self->info('clid') unless defined $rd;
- return $ndr->process('registrar','info',[$rd]);
+ my ($self,$ndr,$clid,$rd)=@_;
+ $clid = $self->info('clid') unless defined $clid;
+ $clid = 'registrar' if $ndr->name() eq 'EURid'; # hardcode so it parses correctly
+ return $ndr->process('registrar','info',[$clid,$rd]);
  }
 
 sub registrar_balance
 {
- my ($self,$ndr,$rd)=@_;
- $rd= $self->info('clid') unless defined $rd;
- return $ndr->process('registrar','balance',[$rd]);
+ my ($self,$ndr,$clid,$rd)=@_;
+ $clid = $self->info('clid') unless defined $clid;
+ return $ndr->process('registrar','balance',[$clid,$rd]);
 }
 
 sub promo_info {
@@ -1448,7 +1451,9 @@ sub _build_price_query
  } elsif (grep $_ eq 'Net::DRI::Protocol::EPP::Extensions::VeriSign::PremiumDomain', @{$ndr->protocol()->{loaded_modules}})
  {
    $rd->{premium_domain} = 1;
- } elsif (grep $_ eq 'Net::DRI::Protocol::EPP::Extensions::CentralNic::Fee', @{$ndr->protocol()->{loaded_modules}})
+ }
+ # this extension is used in addition to premium_domain above, hense to elsif
+ if (grep $_ eq 'Net::DRI::Protocol::EPP::Extensions::CentralNic::Fee', @{$ndr->protocol()->{loaded_modules}})
  {
    my ($fee,@fees);
    foreach my $k (qw/currency action duration phase sub_phase/)
@@ -1487,12 +1492,12 @@ sub domain_check_claims
  my $lp = { 'phase' => 'claims', 'type'=>'claims' };
  if (defined $rd && exists $rd->{phase} && lc($rd->{phase}) ne 'claims')
  {
-  # By default, most registries do NOT use a sub_phase is claims lookups. Therefore if you specifiy a phase it will be ignored
+  # By default, most registries do NOT use a sub_phase is claims lookups. Therefore if you specify a phase it will be ignored
   # Afilias/ARI/CentralNIC/CoreNic/CRR/Donuts/GMO/KS/PIR/RegBox/Rightside/StartingDot/Tango/UniRegistry
 
-  # These registres use claims as phase + phase_name us sub_phase. domain_check_claims('test-validate.buzz',{phase=>'landrush'});
-  # Neustar/MAM/FFM/KNet   (Knet seems to work either way - but rather put it here)
-  $lp->{sub_phase} = $rd->{phase} if ($bep =~ m/^(?:neustar|mam|ffm|knet)/);
+  # These registres use claims as phase + phase_name us sub_phase. domain_check_claims('test-validate.tube',{phase=>'landrush'});
+  # Neustar/MAM/FFM/KNet/Amazon   (Knet seems to work either way - but rather put it here)
+  $lp->{sub_phase} = $rd->{phase} if ($bep =~ m/^(?:neustar|mam|ffm|knet|amazon)/);
   # i think there is much more to do here
  }
  $rd->{lp} = $lp;
