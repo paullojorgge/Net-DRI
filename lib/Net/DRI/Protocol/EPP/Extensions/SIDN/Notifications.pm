@@ -38,7 +38,7 @@ sub parse_sidn
  my ($po,$otype,$oaction,$oname,$rinfo)=@_;
  my $mes=$po->message();
  return unless $mes->is_success();
- return unless defined drp_parse($mes,$otype,$rinfo); # quick fix for strange drp poll message
+ drp_parse($mes,$otype,$rinfo); # quick fix for strange drp poll message
 
  my $node=$mes->get_response('sidn','pollData');
  return unless defined $node;
