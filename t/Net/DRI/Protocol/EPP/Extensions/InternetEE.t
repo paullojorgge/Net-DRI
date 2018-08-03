@@ -7,7 +7,7 @@ use Net::DRI;
 use Net::DRI::Data::Raw;
 use DateTime::Duration;
 
-use Test::More tests => 66;
+use Test::More tests => 80;
 use Test::Exception;
 
 use Data::Dumper;
@@ -206,6 +206,57 @@ throws_ok { $dri->domain_delete('domain62.ee',{pure_delete=>1}) } qr/legal_docum
 # legal document is not base64
 $legal_document = 'foobar';
 throws_ok { $dri->domain_delete('domain62.ee',{pure_delete=>1, legal_document=>$legal_document, legal_document_attr=>$legal_document_attr}) } qr/legal_document is not base64!/, 'domain_delete - legal document is not base64';
+####################################################################################################
+
+####################################################################################################
+## Domain renew
+$R2=$E1.'<response>'.r().'<resData><domain:renData xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd"><domain:name>domain42.ee</domain:name><domain:exDate>2017-09-09T09:42:01Z</domain:exDate></domain:renData></resData>'.$TRID.'</response>'.$E2;
+$rc=$dri->domain_renew('domain42.ee',{duration => DateTime::Duration->new(years=>1), current_expiration => DateTime->new(year=>2016,month=>9,day=>9)});
+is($R1,$E1.'<command><renew><domain:renew xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain42.ee</domain:name><domain:curExpDate>2016-09-09</domain:curExpDate><domain:period unit="y">1</domain:period></domain:renew></renew><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_renew build');
+is($dri->get_info('action'),'renew','domain_renew get_info(action)');
+is($dri->get_info('exist'),1,'domain_renew get_info(exist)');
+$d=$dri->get_info('exDate');
+isa_ok($d,'DateTime','domain_renew get_info(exDate)');
+is("".$d,'2017-09-09T09:42:01','domain_renew get_info(exDate) value');
+
+## Domain renew with no period specified - if it's the case default is 1 year!
+$R2=$E1.'<response>'.r().'<resData><domain:renData xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd"><domain:name>domain42.ee</domain:name><domain:exDate>2017-09-09T09:42:01Z</domain:exDate></domain:renData></resData>'.$TRID.'</response>'.$E2;
+$rc=$dri->domain_renew('domain42.ee',{current_expiration => DateTime->new(year=>2016,month=>9,day=>9)});
+is($R1,$E1.'<command><renew><domain:renew xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain42.ee</domain:name><domain:curExpDate>2016-09-09</domain:curExpDate></domain:renew></renew><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_renew no period build');
+is($dri->get_info('action'),'renew','domain_renew  no period get_info(action)');
+is($dri->get_info('exist'),1,'domain_renew no period get_info(exist)');
+$d=$dri->get_info('exDate');
+isa_ok($d,'DateTime','domain_renew no period get_info(exDate)');
+is("".$d,'2017-09-09T09:42:01','domain_renew no period get_info(exDate) value');
+####################################################################################################
+
+####################################################################################################
+## Domain update
+$R2='';
+$toc=$dri->local_object('changes');
+$toc->add('ns',$dri->local_object('hosts')->set(['ns1.example.com'],['ns2.example.com']));
+$cs=$dri->local_object('contactset');
+$cs->set($dri->local_object('contact')->srid('FIXED:PENDINGMAK21'),'tech');
+$toc->add('contact',$cs);
+$toc->add('status',$dri->local_object('status')->no('update'));
+$cs=$dri->local_object('contactset');
+$toc->set('registrant',$dri->local_object('contact')->srid('FIXED:CITIZEN_1234'));
+$toc->add('secdns',[{key_flags=>0,key_alg=>5,key_protocol=>3,key_pubKey=>'700b97b591ed27ec2590d19f06f88bba700b97b591ed27ec2590d19f'},{key_flags=>256,key_alg=>'254',key_protocol=>3,key_pubKey=>'841936717ae427ace63c28d04918569a841936717ae427ace63c28d0'}]);
+$rc=$dri->domain_update('domain35.ee',$toc,{legal_document=>'dGVzdCBmYWlsCg==',legal_document_attr=>'pdf'});
+is($R1,$E1.'<command><update><domain:update xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain35.ee</domain:name><domain:add><domain:ns><domain:hostAttr><domain:hostName>ns1.example.com</domain:hostName></domain:hostAttr><domain:hostAttr><domain:hostName>ns2.example.com</domain:hostName></domain:hostAttr></domain:ns><domain:contact type="tech">FIXED:PENDINGMAK21</domain:contact><domain:status s="clientUpdateProhibited"/></domain:add><domain:chg><domain:registrant>FIXED:CITIZEN_1234</domain:registrant></domain:chg></domain:update></update><extension><secDNS:update xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1" xsi:schemaLocation="urn:ietf:params:xml:ns:secDNS-1.1 secDNS-1.1.xsd"><secDNS:add><secDNS:keyData><secDNS:flags>0</secDNS:flags><secDNS:protocol>3</secDNS:protocol><secDNS:alg>5</secDNS:alg><secDNS:pubKey>700b97b591ed27ec2590d19f06f88bba700b97b591ed27ec2590d19f</secDNS:pubKey></secDNS:keyData><secDNS:keyData><secDNS:flags>256</secDNS:flags><secDNS:protocol>3</secDNS:protocol><secDNS:alg>254</secDNS:alg><secDNS:pubKey>841936717ae427ace63c28d04918569a841936717ae427ace63c28d0</secDNS:pubKey></secDNS:keyData></secDNS:add></secDNS:update><eis:extdata xmlns:eis="https://epp.tld.ee/schema/eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/eis-1.0.xsd eis-1.0.xsd"><eis:legalDocument type="pdf">dGVzdCBmYWlsCg==</eis:legalDocument></eis:extdata></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_update build');
+is($rc->is_success(),1,'domain_update is_success');
+
+$R2='';
+$toc=$dri->local_object('changes');
+$toc->del('ns',$dri->local_object('hosts')->set(['ns1.example.com']));
+$cs=$dri->local_object('contactset');
+$cs->set($dri->local_object('contact')->srid('FIXED:CITIZEN_1234'),'tech');
+$toc->del('contact',$cs);
+$toc->del('status',$dri->local_object('status')->no('publish'));
+$toc->del('secdns',[{key_flags=>256,key_alg=>254,key_protocol=>3,key_pubKey=>'700b97b591ed27ec2590d19f06f88bba700b97b591ed27ec2590d19f'}]);
+$rc=$dri->domain_update('domain37.ee',$toc);
+is($R1,$E1.'<command><update><domain:update xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain37.ee</domain:name><domain:rem><domain:ns><domain:hostAttr><domain:hostName>ns1.example.com</domain:hostName></domain:hostAttr></domain:ns><domain:contact type="tech">FIXED:CITIZEN_1234</domain:contact><domain:status s="clientHold"/></domain:rem></domain:update></update><extension><secDNS:update xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1" xsi:schemaLocation="urn:ietf:params:xml:ns:secDNS-1.1 secDNS-1.1.xsd"><secDNS:rem><secDNS:keyData><secDNS:flags>256</secDNS:flags><secDNS:protocol>3</secDNS:protocol><secDNS:alg>254</secDNS:alg><secDNS:pubKey>700b97b591ed27ec2590d19f06f88bba700b97b591ed27ec2590d19f</secDNS:pubKey></secDNS:keyData></secDNS:rem></secDNS:update></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_update 2 build');
+is($rc->is_success(),1,'domain_update 2 is_success');
 ####################################################################################################
 
 

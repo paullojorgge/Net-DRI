@@ -76,9 +76,9 @@ sub register_commands
  my %tmp=(
           create            => [ \&create, undef ],
           delete            => [ \&delete, undef],
+          update            => [ \&update, undef],
 #          info              => [ undef, undef ],
-#          transfer          => [ \&transfer, undef],          
-#          update            => [ \&update, undef],
+#          transfer          => [ \&transfer, undef],
          );
 
  return { 'domain' => \%tmp };
@@ -114,16 +114,18 @@ sub delete
 
 sub update
 {
-  my ($epp,$domain,$todo)=@_;
-
-  # TODO :)
+  my ($epp,$domain,$rd,$eis_extdata)=@_;
+  my $mes=$epp->message();
+  return unless $eis_extdata->{'legal_document'};
+  Net::DRI::Exception::usererr_insufficient_parameters('legal_document mandatory to update domain!') unless $eis_extdata->{'legal_document'};
+  eis_extdata_build_command($epp,$domain,$eis_extdata,$mes);
 
   return;
 }
 
 
 ### EIS - Ident with type and country code
-sub __ident
+sub _ident
 {
   my ($ident)=@_;
 
@@ -133,31 +135,31 @@ sub __ident
 
 
 ### EIS - Legal document, encoded in base64
-sub __legal_document
+sub _legal_document
 {
   my ($rd,$mes)=@_;
   require MIME::Base64;
-  my @eis_exdata_legal_document;  
+  my @eis_extdata_legal_document;
 
   Net::DRI::Exception::usererr_insufficient_parameters('legal_document') unless $rd->{'legal_document'};
   Net::DRI::Exception::usererr_insufficient_parameters('legal_document_attr') unless $rd->{'legal_document_attr'};
   Net::DRI::Exception::usererr_invalid_parameters('legal_document is not base64!') unless Net::DRI::Util::verify_base64($rd->{'legal_document'});
   my @legal_doc_type = (qw/pdf asice asics sce scs adoc bdoc edoc ddoc zip rar gz tar 7z odt doc docx/);
   Net::DRI::Exception::usererr_invalid_parameters('legal_document_attr type is not valid!') unless ( grep $_ eq $rd->{'legal_document_attr'}, @legal_doc_type );
-  push @eis_exdata_legal_document, [ 'eis:legalDocument', { type => ($rd->{'legal_document_attr'}) }, $rd->{'legal_document'} ];
+  push @eis_extdata_legal_document, [ 'eis:legalDocument', { type => ($rd->{'legal_document_attr'}) }, $rd->{'legal_document'} ];
 
-  return @eis_exdata_legal_document;
+  return @eis_extdata_legal_document;
 }
 
 
 ### EIS - Reserved for providing passwords for reserved domains
-sub __reserved
+sub _reserved
 {
   my ($rd,$mes)=@_;
-  my @eis_exdata_reserved;  
-  push @eis_exdata_reserved, [ 'eis:reserved', [ 'eis:pw', $rd->{'reserved'} ] ];
+  my @eis_extdata_reserved;
+  push @eis_extdata_reserved, [ 'eis:reserved', [ 'eis:pw', $rd->{'reserved'} ] ];
 
-  return @eis_exdata_reserved;
+  return @eis_extdata_reserved;
 }
 
 
@@ -166,13 +168,12 @@ sub eis_extdata_build_command
 {
   my ($epp,$domain,$rd,$mes) = @_;
   my $eid=$mes->command_extension_register('eis:extdata',sprintf('xmlns:eis="%s" xsi:schemaLocation="%s %s"',$mes->nsattrs('ee_eis')));
-  my @eis_exdata;
+  my @eis_extdata;
 
-  # only use <eis:legalDocument>
-  @eis_exdata = __legal_document($rd,$mes) if ( $rd->{'legal_document'} || $rd->{'legal_document_attr'} );
-  push @eis_exdata, __reserved($rd,$mes) if ( $rd->{'reserved'} );
+  push @eis_extdata, _legal_document($rd,$mes) if ( $rd->{'legal_document'} || $rd->{'legal_document_attr'} );
+  push @eis_extdata, _reserved($rd,$mes) if ( $rd->{'reserved'} );
 
-  $mes->command_extension($eid,\@eis_exdata);
+  $mes->command_extension($eid,\@eis_extdata);
 
   return $mes;
 }
