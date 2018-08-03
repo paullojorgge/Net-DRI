@@ -69,18 +69,19 @@ sub setup
 {
   my ($self,$rp)=@_;
   $self->ns({
-      ee_all        => ['https://epp.tld.ee/schema/all-ee-1.0','all-ee-1.0.xsd'],
-      ee_eis        => ['https://epp.tld.ee/schema/eis-1.0.xsd','eis-1.0.xsd'],
-      ee_epp        => ['https://epp.tld.ee/schema/epp-ee-1.0.xsd','epp-ee-1.0.xsd'],
-      domain_eis    => ['https://epp.tld.ee/schema/domain-eis-1.0.xsd','domain-eis-1.0.xsd'],
-      contact_eis   => ['https://epp.tld.ee/schema/contact-eis-1.0.xsd','contact-eis-1.0.xsd'],
-      contact_ee    => ['https://epp.tld.ee/schema/contact-ee-1.1.xsd','contact-ee-1.1.xsd'],
+      _main       => ['https://epp.tld.ee/schema/epp-ee-1.0.xsd','epp-ee-1.0.xsd'],
+      domain      => ['https://epp.tld.ee/schema/domain-eis-1.0.xsd','domain-eis-1.0.xsd'],
+      contact     => ['https://epp.tld.ee/schema/contact-eis-1.0.xsd','contact-eis-1.0.xsd'],
+      ee_all      => ['https://epp.tld.ee/schema/all-ee-1.0','all-ee-1.0.xsd'],
+      ee_eis      => ['https://epp.tld.ee/schema/eis-1.0.xsd','eis-1.0.xsd'],
+      contact_ee  => ['https://epp.tld.ee/schema/contact-ee-1.1.xsd','contact-ee-1.1.xsd']
     });
 
   return;
 }
 
-sub default_extensions { return qw/SecDNS CL::Message/; } # FIXME!!!!
+sub core_contact_types { return ('admin', 'billing', 'tech'); } # TODO: check billing. Listed on schemas but technical documentation only specify: admin and tech!
+sub default_extensions { return qw/SecDNS InternetEE::Domain/; }
 
 ####################################################################################################
 1;
