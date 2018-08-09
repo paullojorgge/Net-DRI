@@ -75,10 +75,12 @@ sub register_commands
  my ($class,$version)=@_;
  my %tmp=(
           create            => [ \&create, undef ],
-          delete            => [ \&delete, undef],
-          update            => [ \&update, undef],
-#          info              => [ undef, undef ],
-#          transfer          => [ \&transfer, undef],
+          delete            => [ \&delete, undef ],
+          update            => [ \&update, undef ],
+          transfer_query	=> [ \&transfer_extdata, undef ],
+          transfer_request	=> [ \&transfer_extdata, undef ],
+          transfer_cancel 	=> [ \&transfer_extdata, undef ],
+          transfer_answer 	=> [ \&transfer_extdata, undef ],
          );
 
  return { 'domain' => \%tmp };
@@ -119,6 +121,15 @@ sub update
   return unless $eis_extdata->{'legal_document'};
   Net::DRI::Exception::usererr_insufficient_parameters('legal_document mandatory to update domain!') unless $eis_extdata->{'legal_document'};
   eis_extdata_build_command($epp,$domain,$eis_extdata,$mes);
+
+  return;
+}
+
+sub transfer_extdata
+{
+  my ($epp,$domain,$rd)=@_;
+  my $mes=$epp->message();
+  eis_extdata_build_command($epp,$domain,$rd,$mes) if $rd->{'legal_document'};
 
   return;
 }

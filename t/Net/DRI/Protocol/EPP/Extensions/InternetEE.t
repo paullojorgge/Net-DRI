@@ -7,7 +7,7 @@ use Net::DRI;
 use Net::DRI::Data::Raw;
 use DateTime::Duration;
 
-use Test::More tests => 80;
+use Test::More tests => 144;
 use Test::Exception;
 
 use Data::Dumper;
@@ -92,9 +92,7 @@ is($dri->get_info('exist','domain','three.ee'),0,'domain_check multi get_info(ex
 
 ####################################################################################################
 ## Domain info
-$R2=$E1.'<response>'.r().'
-<resData><domain:infData xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd"><domain:name>domain56.ee</domain:name><domain:roid>EIS-69</domain:roid><domain:status s="clientHold"/><domain:registrant>FIXED:REGISTRANT6384423854</domain:registrant><domain:contact type="tech">FIXED:SH46786741126</domain:contact><domain:contact type="admin">FIXED:SH96052327125</domain:contact><domain:ns><domain:hostAttr><domain:hostName>ns.westkeebler168.ee</domain:hostName><domain:hostAddr ip="v4">192.168.1.1</domain:hostAddr></domain:hostAttr><domain:hostAttr><domain:hostName>ns.wuckert169.ee</domain:hostName><domain:hostAddr ip="v4">192.168.1.1</domain:hostAddr></domain:hostAttr><domain:hostAttr><domain:hostName>ns.runolfssoneffertz170.ee</domain:hostName><domain:hostAddr ip="v4">192.168.1.1</domain:hostAddr></domain:hostAttr><domain:hostAttr><domain:hostName>ns1.example.com</domain:hostName><domain:hostAddr ip="v4">192.168.1.1</domain:hostAddr><domain:hostAddr ip="v6">1080:0:0:0:8:800:200C:417A</domain:hostAddr></domain:hostAttr></domain:ns><domain:clID>registrar1</domain:clID><domain:crDate>2015-09-09T09:42:12Z</domain:crDate><domain:upDate>2015-09-09T09:42:12Z</domain:upDate><domain:exDate>2016-09-09T09:42:12Z</domain:exDate><domain:authInfo><domain:pw>98oiewslkfkd</domain:pw></domain:authInfo></domain:infData></resData><extension><secDNS:infData xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1"><secDNS:dsData><secDNS:keyTag>123</secDNS:keyTag><secDNS:alg>3</secDNS:alg><secDNS:digestType>1</secDNS:digestType><secDNS:digest>0D85A305D22FCB355BBE29AE9809363D697B64782B9CC73AE349350F8C2AE4BB</secDNS:digest><secDNS:keyData><secDNS:flags>257</secDNS:flags><secDNS:protocol>3</secDNS:protocol><secDNS:alg>3</secDNS:alg><secDNS:pubKey>AwEAAddt2AkLfYGKgiEZB5SmIF8EvrjxNMH6HtxWEA4RJ9Ao6LCWheg8</secDNS:pubKey></secDNS:keyData></secDNS:dsData><secDNS:dsData><secDNS:keyTag>123</secDNS:keyTag><secDNS:alg>3</secDNS:alg><secDNS:digestType>1</secDNS:digestType><secDNS:digest>0D85A305D22FCB355BBE29AE9809363D697B64782B9CC73AE349350F8C2AE4BB</secDNS:digest><secDNS:keyData><secDNS:flags>0</secDNS:flags><secDNS:protocol>3</secDNS:protocol><secDNS:alg>5</secDNS:alg><secDNS:pubKey>700b97b591ed27ec2590d19f06f88bba700b97b591ed27ec2590d19f</secDNS:pubKey></secDNS:keyData></secDNS:dsData></secDNS:infData></extension>
-'.$TRID.'</response>'.$E2;
+$R2=$E1.'<response>'.r().'<resData><domain:infData xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd"><domain:name>domain56.ee</domain:name><domain:roid>EIS-69</domain:roid><domain:status s="clientHold"/><domain:registrant>FIXED:REGISTRANT6384423854</domain:registrant><domain:contact type="tech">FIXED:SH46786741126</domain:contact><domain:contact type="admin">FIXED:SH96052327125</domain:contact><domain:ns><domain:hostAttr><domain:hostName>ns.westkeebler168.ee</domain:hostName><domain:hostAddr ip="v4">192.168.1.1</domain:hostAddr></domain:hostAttr><domain:hostAttr><domain:hostName>ns.wuckert169.ee</domain:hostName><domain:hostAddr ip="v4">192.168.1.1</domain:hostAddr></domain:hostAttr><domain:hostAttr><domain:hostName>ns.runolfssoneffertz170.ee</domain:hostName><domain:hostAddr ip="v4">192.168.1.1</domain:hostAddr></domain:hostAttr><domain:hostAttr><domain:hostName>ns1.example.com</domain:hostName><domain:hostAddr ip="v4">192.168.1.1</domain:hostAddr><domain:hostAddr ip="v6">1080:0:0:0:8:800:200C:417A</domain:hostAddr></domain:hostAttr></domain:ns><domain:clID>registrar1</domain:clID><domain:crDate>2015-09-09T09:42:12Z</domain:crDate><domain:upDate>2015-09-09T09:42:12Z</domain:upDate><domain:exDate>2016-09-09T09:42:12Z</domain:exDate><domain:authInfo><domain:pw>98oiewslkfkd</domain:pw></domain:authInfo></domain:infData></resData><extension><secDNS:infData xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1"><secDNS:dsData><secDNS:keyTag>123</secDNS:keyTag><secDNS:alg>3</secDNS:alg><secDNS:digestType>1</secDNS:digestType><secDNS:digest>0D85A305D22FCB355BBE29AE9809363D697B64782B9CC73AE349350F8C2AE4BB</secDNS:digest><secDNS:keyData><secDNS:flags>257</secDNS:flags><secDNS:protocol>3</secDNS:protocol><secDNS:alg>3</secDNS:alg><secDNS:pubKey>AwEAAddt2AkLfYGKgiEZB5SmIF8EvrjxNMH6HtxWEA4RJ9Ao6LCWheg8</secDNS:pubKey></secDNS:keyData></secDNS:dsData><secDNS:dsData><secDNS:keyTag>123</secDNS:keyTag><secDNS:alg>3</secDNS:alg><secDNS:digestType>1</secDNS:digestType><secDNS:digest>0D85A305D22FCB355BBE29AE9809363D697B64782B9CC73AE349350F8C2AE4BB</secDNS:digest><secDNS:keyData><secDNS:flags>0</secDNS:flags><secDNS:protocol>3</secDNS:protocol><secDNS:alg>5</secDNS:alg><secDNS:pubKey>700b97b591ed27ec2590d19f06f88bba700b97b591ed27ec2590d19f</secDNS:pubKey></secDNS:keyData></secDNS:dsData></secDNS:infData></extension>'.$TRID.'</response>'.$E2;
 $rc=$dri->domain_info('domain56.ee',{auth=>{pw=>'2fooBAR'}});
 is($R1,$E1.'<command><info><domain:info xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name hosts="all">domain56.ee</domain:name><domain:authInfo><domain:pw>2fooBAR</domain:pw></domain:authInfo></domain:info></info><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_info build with auth');
 is($dri->get_info('action'),'info','domain_info get_info(action)');
@@ -257,6 +255,115 @@ $toc->del('secdns',[{key_flags=>256,key_alg=>254,key_protocol=>3,key_pubKey=>'70
 $rc=$dri->domain_update('domain37.ee',$toc);
 is($R1,$E1.'<command><update><domain:update xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain37.ee</domain:name><domain:rem><domain:ns><domain:hostAttr><domain:hostName>ns1.example.com</domain:hostName></domain:hostAttr></domain:ns><domain:contact type="tech">FIXED:CITIZEN_1234</domain:contact><domain:status s="clientHold"/></domain:rem></domain:update></update><extension><secDNS:update xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1" xsi:schemaLocation="urn:ietf:params:xml:ns:secDNS-1.1 secDNS-1.1.xsd"><secDNS:rem><secDNS:keyData><secDNS:flags>256</secDNS:flags><secDNS:protocol>3</secDNS:protocol><secDNS:alg>254</secDNS:alg><secDNS:pubKey>700b97b591ed27ec2590d19f06f88bba700b97b591ed27ec2590d19f</secDNS:pubKey></secDNS:keyData></secDNS:rem></secDNS:update></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_update 2 build');
 is($rc->is_success(),1,'domain_update 2 is_success');
+####################################################################################################
+
+####################################################################################################
+## Domain transfer request (standard)
+$R2=$E1.'<response>'.r().'<resData><domain:trnData xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain3.ee</domain:name><domain:trStatus>serverApproved</domain:trStatus><domain:reID>REGDOMAIN2</domain:reID><domain:reDate>2015-09-09T09:41:30Z</domain:reDate><domain:acID>REGDOMAIN1</domain:acID><domain:acDate>2015-09-09T09:41:30Z</domain:acDate><domain:exDate>2016-09-09T09:41:30Z</domain:exDate></domain:trnData></resData>'.$TRID.'</response>'.$E2;
+$rc=$dri->domain_transfer_start('domain3.ee',{auth=>{pw=>'98oiewslkfkd'}});
+is($R1,$E1.'<command><transfer op="request"><domain:transfer xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain3.ee</domain:name><domain:authInfo><domain:pw>98oiewslkfkd</domain:pw></domain:authInfo></domain:transfer></transfer><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_transfer_request standard build');
+is($dri->get_info('action'),'transfer','domain_transfer_start get_info(action)');
+is($dri->get_info('exist'),1,'domain_transfer_start get_info(exist)');
+is($dri->get_info('trStatus'),'serverApproved','domain_transfer_start get_info(trStatus)');
+is($dri->get_info('reID'),'REGDOMAIN2','domain_transfer_start get_info(reID)');
+$d=$dri->get_info('reDate');
+isa_ok($d,'DateTime','domain_transfer_start get_info(reDate)');
+is("".$d,'2015-09-09T09:41:30','domain_transfer_start get_info(reDate) value');
+is($dri->get_info('acID'),'REGDOMAIN1','domain_transfer_start get_info(acID)');
+$d=$dri->get_info('acDate');
+isa_ok($d,'DateTime','domain_transfer_start get_info(acDate)');
+is("".$d,'2015-09-09T09:41:30','domain_transfer_start get_info(acDate) value');
+$d=$dri->get_info('exDate');
+isa_ok($d,'DateTime','domain_transfer_start get_info(exDate)');
+is("".$d,'2016-09-09T09:41:30','domain_transfer_start get_info(exDate) value');
+
+## Domain transfer request (with extdata)
+$R2=$E1.'<response>'.r().'<resData><domain:trnData xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain2.ee</domain:name><domain:trStatus>serverApproved</domain:trStatus><domain:reID>REGDOMAIN2</domain:reID><domain:reDate>2015-09-09T09:41:30Z</domain:reDate><domain:acID>REGDOMAIN1</domain:acID><domain:acDate>2015-09-09T09:41:30Z</domain:acDate><domain:exDate>2016-09-09T09:41:30Z</domain:exDate></domain:trnData></resData>'.$TRID.'</response>'.$E2;
+$rc=$dri->domain_transfer_start('domain2.ee',{auth=>{pw=>'98oiewslkfkd'},legal_document=>'dGVzdCBmYWlsCg==',legal_document_attr=>'pdf'});
+is($R1,$E1.'<command><transfer op="request"><domain:transfer xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain2.ee</domain:name><domain:authInfo><domain:pw>98oiewslkfkd</domain:pw></domain:authInfo></domain:transfer></transfer><extension><eis:extdata xmlns:eis="https://epp.tld.ee/schema/eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/eis-1.0.xsd eis-1.0.xsd"><eis:legalDocument type="pdf">dGVzdCBmYWlsCg==</eis:legalDocument></eis:extdata></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_transfer_request with extdata build');
+is($dri->get_info('action'),'transfer','domain_transfer_start get_info(action) (extdata)');
+is($dri->get_info('exist'),1,'domain_transfer_start get_info(exist) (extdata)');
+is($dri->get_info('trStatus'),'serverApproved','domain_transfer_start get_info(trStatus) (extdata)');
+is($dri->get_info('reID'),'REGDOMAIN2','domain_transfer_start get_info(reID) (extdata)');
+$d=$dri->get_info('reDate');
+isa_ok($d,'DateTime','domain_transfer_start get_info(reDate) (extdata)');
+is("".$d,'2015-09-09T09:41:30','domain_transfer_start get_info(reDate) value (extdata)');
+is($dri->get_info('acID'),'REGDOMAIN1','domain_transfer_start get_info(acID) (extdata)');
+$d=$dri->get_info('acDate');
+isa_ok($d,'DateTime','domain_transfer_start get_info(acDate) (extdata)');
+is("".$d,'2015-09-09T09:41:30','domain_transfer_start get_info(acDate) value (extdata)');
+$d=$dri->get_info('exDate');
+isa_ok($d,'DateTime','domain_transfer_start get_info(exDate) (extdata)');
+is("".$d,'2016-09-09T09:41:30','domain_transfer_start get_info(exDate) value (extdata)');
+
+# document type is not valid
+throws_ok { $dri->domain_transfer_start('domain222.ee',{auth=>{pw=>'98oiewslkfkd'},legal_document=>'dGVzdCBmYWlsCg==',legal_document_attr=>'pdff'}) } qr/legal_document_attr type is not valid!/, 'domain_transfer_start - with non valid document type';
+####################################################################################################
+
+####################################################################################################
+## Domain transfer approve (with extdata)
+$R2=$E1.'<response>'.r().'<resData><domain:trnData xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain17.ee</domain:name><domain:trStatus>clientApproved</domain:trStatus><domain:reID>REGDOMAIN2</domain:reID><domain:reDate>2015-09-09T09:41:34Z</domain:reDate><domain:acID>REGDOMAIN1</domain:acID><domain:acDate>2015-09-09T09:41:34Z</domain:acDate><domain:exDate>2016-09-09T09:41:34Z</domain:exDate></domain:trnData></resData>'.$TRID.'</response>'.$E2;
+$rc=$dri->domain_transfer_accept('domain17.ee',{auth=>{pw=>'98oiewslkfkd'},legal_document=>'dGVzdCBmYWlsCg==',legal_document_attr=>'pdf'});
+is($R1,$E1.'<command><transfer op="approve"><domain:transfer xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain17.ee</domain:name><domain:authInfo><domain:pw>98oiewslkfkd</domain:pw></domain:authInfo></domain:transfer></transfer><extension><eis:extdata xmlns:eis="https://epp.tld.ee/schema/eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/eis-1.0.xsd eis-1.0.xsd"><eis:legalDocument type="pdf">dGVzdCBmYWlsCg==</eis:legalDocument></eis:extdata></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_transfer_accept with extdata build');
+is($dri->get_info('action'),'transfer','domain_transfer_accept get_info(action) (extdata)');
+is($dri->get_info('exist'),1,'domain_transfer_accept get_info(exist) (extdata)');
+is($dri->get_info('name'),'domain17.ee','domain_transfer_accept get_info(trStatus) (extdata)');
+is($dri->get_info('trStatus'),'clientApproved','domain_transfer_accept get_info(trStatus) (extdata)');
+is($dri->get_info('reID'),'REGDOMAIN2','domain_transfer_accept get_info(reID) (extdata)');
+$d=$dri->get_info('reDate');
+isa_ok($d,'DateTime','domain_transfer_accept get_info(reDate) (extdata)');
+is("".$d,'2015-09-09T09:41:34','domain_transfer_accept get_info(reDate) value (extdata)');
+is($dri->get_info('acID'),'REGDOMAIN1','domain_transfer_accept get_info(acID) (extdata)');
+$d=$dri->get_info('acDate');
+isa_ok($d,'DateTime','domain_transfer_accept get_info(acDate) (extdata)');
+is("".$d,'2015-09-09T09:41:34','domain_transfer_accept get_info(acDate) value (extdata)');
+$d=$dri->get_info('exDate');
+isa_ok($d,'DateTime','domain_transfer_accept get_info(exDate) (extdata)');
+is("".$d,'2016-09-09T09:41:34','domain_transfer_accept get_info(exDate) value (extdata)');
+####################################################################################################
+
+####################################################################################################
+## Domain transfer approve (with extdata)
+$R2=$E1.'<response>'.r().'<resData><domain:trnData xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain17.ee</domain:name><domain:trStatus>clientApproved</domain:trStatus><domain:reID>REGDOMAIN2</domain:reID><domain:reDate>2015-09-09T09:41:34Z</domain:reDate><domain:acID>REGDOMAIN1</domain:acID><domain:acDate>2015-09-09T09:41:34Z</domain:acDate><domain:exDate>2016-09-09T09:41:34Z</domain:exDate></domain:trnData></resData>'.$TRID.'</response>'.$E2;
+$rc=$dri->domain_transfer_accept('domain17.ee',{auth=>{pw=>'98oiewslkfkd'},legal_document=>'dGVzdCBmYWlsCg==',legal_document_attr=>'pdf'});
+is($R1,$E1.'<command><transfer op="approve"><domain:transfer xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain17.ee</domain:name><domain:authInfo><domain:pw>98oiewslkfkd</domain:pw></domain:authInfo></domain:transfer></transfer><extension><eis:extdata xmlns:eis="https://epp.tld.ee/schema/eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/eis-1.0.xsd eis-1.0.xsd"><eis:legalDocument type="pdf">dGVzdCBmYWlsCg==</eis:legalDocument></eis:extdata></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_transfer_accept with extdata build');
+is($dri->get_info('action'),'transfer','domain_transfer_accept get_info(action) (extdata)');
+is($dri->get_info('exist'),1,'domain_transfer_accept get_info(exist) (extdata)');
+is($dri->get_info('name'),'domain17.ee','domain_transfer_accept get_info(trStatus) (extdata)');
+is($dri->get_info('trStatus'),'clientApproved','domain_transfer_accept get_info(trStatus) (extdata)');
+is($dri->get_info('reID'),'REGDOMAIN2','domain_transfer_accept get_info(reID) (extdata)');
+$d=$dri->get_info('reDate');
+isa_ok($d,'DateTime','domain_transfer_accept get_info(reDate) (extdata)');
+is("".$d,'2015-09-09T09:41:34','domain_transfer_accept get_info(reDate) value (extdata)');
+is($dri->get_info('acID'),'REGDOMAIN1','domain_transfer_accept get_info(acID) (extdata)');
+$d=$dri->get_info('acDate');
+isa_ok($d,'DateTime','domain_transfer_accept get_info(acDate) (extdata)');
+is("".$d,'2015-09-09T09:41:34','domain_transfer_accept get_info(acDate) value (extdata)');
+$d=$dri->get_info('exDate');
+isa_ok($d,'DateTime','domain_transfer_accept get_info(exDate) (extdata)');
+is("".$d,'2016-09-09T09:41:34','domain_transfer_accept get_info(exDate) value (extdata)');
+####################################################################################################
+
+####################################################################################################
+## Domain transfer reject (with extdata)
+$R2=$E1.'<response>'.r().'<resData><domain:trnData xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain18.ee</domain:name><domain:trStatus>clientRejected</domain:trStatus><domain:reID>REGDOMAIN2</domain:reID><domain:reDate>2015-09-09T09:41:34Z</domain:reDate><domain:acID>REGDOMAIN1</domain:acID><domain:acDate>2015-09-09T09:41:34Z</domain:acDate><domain:exDate>2016-09-09T09:41:34Z</domain:exDate></domain:trnData></resData>'.$TRID.'</response>'.$E2;
+$rc=$dri->domain_transfer_refuse('domain18.ee',{auth=>{pw=>'98oiewslkfkd'},legal_document=>'dGVzdCBmYWlsCg==',legal_document_attr=>'pdf'});
+is($R1,$E1.'<command><transfer op="reject"><domain:transfer xmlns:domain="https://epp.tld.ee/schema/domain-eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/domain-eis-1.0.xsd domain-eis-1.0.xsd"><domain:name>domain18.ee</domain:name><domain:authInfo><domain:pw>98oiewslkfkd</domain:pw></domain:authInfo></domain:transfer></transfer><extension><eis:extdata xmlns:eis="https://epp.tld.ee/schema/eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/eis-1.0.xsd eis-1.0.xsd"><eis:legalDocument type="pdf">dGVzdCBmYWlsCg==</eis:legalDocument></eis:extdata></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_transfer_refuse with extdata build');
+is($dri->get_info('action'),'transfer','domain_transfer_refuse get_info(action) (extdata)');
+is($dri->get_info('exist'),1,'domain_transfer_refuse get_info(exist) (extdata)');
+is($dri->get_info('name'),'domain18.ee','domain_transfer_refuse get_info(trStatus) (extdata)');
+is($dri->get_info('trStatus'),'clientRejected','domain_transfer_refuse get_info(trStatus) (extdata)');
+is($dri->get_info('reID'),'REGDOMAIN2','domain_transfer_refuse get_info(reID) (extdata)');
+$d=$dri->get_info('reDate');
+isa_ok($d,'DateTime','domain_transfer_refuse get_info(reDate) (extdata)');
+is("".$d,'2015-09-09T09:41:34','domain_transfer_refuse get_info(reDate) value (extdata)');
+is($dri->get_info('acID'),'REGDOMAIN1','domain_transfer_refuse get_info(acID) (extdata)');
+$d=$dri->get_info('acDate');
+isa_ok($d,'DateTime','domain_transfer_refuse get_info(acDate) (extdata)');
+is("".$d,'2015-09-09T09:41:34','domain_transfer_refuse get_info(acDate) value (extdata)');
+$d=$dri->get_info('exDate');
+isa_ok($d,'DateTime','domain_transfer_refuse get_info(exDate) (extdata)');
+is("".$d,'2016-09-09T09:41:34','domain_transfer_refuse get_info(exDate) value (extdata)');
 ####################################################################################################
 
 

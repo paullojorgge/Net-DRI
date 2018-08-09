@@ -21,7 +21,7 @@ use warnings;
 
 use base qw/Net::DRI::DRD/;
 
-__PACKAGE__->make_exception_for_unavailable_operations(qw/contact_transfer contact_transfer_start contact_transfer_stop contact_transfer_query contact_transfer_accept contact_transfer_refuse contact_update_status contact_update_status_add contact_update_status_del contact_update_status_set domain_transfer_stop domain_transfer_query domain_transfer_accept domain_transfer_refuse/);
+__PACKAGE__->make_exception_for_unavailable_operations(qw/contact_transfer contact_transfer_start contact_transfer_stop contact_transfer_query contact_transfer_accept contact_transfer_refuse contact_update_status contact_update_status_add contact_update_status_del contact_update_status_set/);
 
 =pod
 
