@@ -136,16 +136,27 @@ sub transfer_extdata
 
 
 ### EIS - Ident with type and country code
+# this is only used on contact objects but implemented here (Domain.pm) with other <eis:extdata> variations.
+# maybe I should create a different module? EIS.pm or something similar?
 sub _ident
 {
-  my ($ident)=@_;
+  my ($rd,$mes)=@_;
+  my @eis_extdata_ident;
 
+  Net::DRI::Exception::usererr_insufficient_parameters('ident') unless $rd->{'ident'};
+  Net::DRI::Exception::usererr_insufficient_parameters('ident_type_attr') unless $rd->{'ident_type_attr'}; # use required!
+  # ident_cc_attr: their xml schema doesn't define as mandatory but lets do it - all their examples have this attribute :)
+  Net::DRI::Exception::usererr_insufficient_parameters('ident_cc_attr') unless $rd->{'ident_cc_attr'};
+  my @ident_enum_type = (qw/org priv birthday/);
+  Net::DRI::Exception::usererr_invalid_parameters('ident_type_attr type is not valid!') unless ( grep $_ eq $rd->{'ident_type_attr'}, @ident_enum_type );
+  Net::DRI::Exception::usererr_invalid_parameters('ident_cc_attr can only have 2 chars!') unless Net::DRI::Util::xml_is_token($rd->{'ident_cc_attr'},2,2);
+  push @eis_extdata_ident, [ 'eis:ident', { type => ($rd->{'ident_type_attr'}, cc => $rd->{'ident_cc_attr'}) }, $rd->{'ident'} ];
 
-  return $ident;
+  return @eis_extdata_ident;
 }
 
 
-### EIS - Legal document, encoded in base64
+### EIS - Legal document, encoded in base64 and only accept the following doc types: pdf asice asics sce scs adoc bdoc edoc ddoc zip rar gz tar 7z odt doc docx
 sub _legal_document
 {
   my ($rd,$mes)=@_;
@@ -181,6 +192,7 @@ sub eis_extdata_build_command
   my $eid=$mes->command_extension_register('eis:extdata',sprintf('xmlns:eis="%s" xsi:schemaLocation="%s %s"',$mes->nsattrs('ee_eis')));
   my @eis_extdata;
 
+  push @eis_extdata, _ident($rd,$mes) if ( $rd->{'ident'} );
   push @eis_extdata, _legal_document($rd,$mes) if ( $rd->{'legal_document'} || $rd->{'legal_document_attr'} );
   push @eis_extdata, _reserved($rd,$mes) if ( $rd->{'reserved'} );
 

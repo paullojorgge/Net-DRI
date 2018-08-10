@@ -7,7 +7,7 @@ use Net::DRI;
 use Net::DRI::Data::Raw;
 use DateTime::Duration;
 
-use Test::More tests => 144;
+use Test::More tests => 151;
 use Test::Exception;
 
 use Data::Dumper;
@@ -33,8 +33,9 @@ print $@->as_string() if $@;
 my $rc;
 my $s;
 my $d;
-my ($dh,@c,$toc,$csadd,$csdel,$cs,$c1,$c2,$c3,$secdns);
+my ($dh,@c,$toc,$csadd,$csdel,$cs,$c1,$c2,$c3,$secdns,$co);
 my ($legal_document,$legal_document_attr,$reserved);
+my ($ident,$ident_type,$ident_cc);
 
 ####################################################################################################
 # EPP Session when not connected greets client upon connection
@@ -366,7 +367,41 @@ isa_ok($d,'DateTime','domain_transfer_refuse get_info(exDate) (extdata)');
 is("".$d,'2016-09-09T09:41:34','domain_transfer_refuse get_info(exDate) value (extdata)');
 ####################################################################################################
 
+####################################################################################################
+## Contact check (multi)
+$R2=$E1.'<response>'.r().'<resData><contact:chkData xmlns:contact="https://epp.tld.ee/schema/contact-ee-1.1.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/contact-ee-1.1.xsd contact-ee-1.1.xsd"><contact:cd><contact:id avail="0">FIXED:CHECK-1234</contact:id><contact:reason>in use</contact:reason></contact:cd><contact:cd><contact:id avail="1">check-4321</contact:id></contact:cd></contact:chkData></resData>'.$TRID.'</response>'.$E2;
+$rc=$dri->contact_check(map { $dri->local_object('contact')->srid($_) } ('FIXED:CHECK-1234','check-4321'));
+is($R1,$E1.'<command><check><contact:check xmlns:contact="https://epp.tld.ee/schema/contact-ee-1.1.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/contact-ee-1.1.xsd contact-ee-1.1.xsd"><contact:id>FIXED:CHECK-1234</contact:id><contact:id>check-4321</contact:id></contact:check></check><clTRID>ABC-12345</clTRID></command>'.$E2,'contact_check multi build');
+is($rc->is_success(),1,'contact_check multi is_success');
+is($dri->get_info('exist','contact','check-4321'),0,'contact_check multi get_info(exist) 1/2');
+is($dri->get_info('exist','contact','FIXED:CHECK-1234'),1,'contact_check multi get_info(exist) 2/2');
+is($dri->get_info('exist_reason','contact','FIXED:CHECK-1234'),'in use','contact_check multi get_info(exist_reason)');
+####################################################################################################
 
+####################################################################################################
+## Contact delete
+$R2='';
+$co=$dri->local_object('contact')->srid('FIRST0:SH159792');
+$rc=$dri->contact_delete($co);
+is($R1,$E1.'<command><delete><contact:delete xmlns:contact="https://epp.tld.ee/schema/contact-ee-1.1.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/contact-ee-1.1.xsd contact-ee-1.1.xsd"><contact:id>FIRST0:SH159792</contact:id></contact:delete></delete><clTRID>ABC-12345</clTRID></command>'.$E2,'contact_delete build');
+is($rc->is_success(),1,'contact_delete is_success');
+
+## Contact delete with extdata
+$R2='';
+$co=$dri->local_object('contact')->srid('FIRST0:SH159793');
+$legal_document = 'dGVzdCBmYWlsCg==';
+$legal_document_attr = 'pdf';
+$rc=$dri->contact_delete($co, {legal_document=>$legal_document, legal_document_attr=>$legal_document_attr, ident=>'37605030299', ident_type_attr=>'priv', ident_cc_attr=>'EE'});
+is($R1,$E1.'<command><delete><contact:delete xmlns:contact="https://epp.tld.ee/schema/contact-ee-1.1.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/contact-ee-1.1.xsd contact-ee-1.1.xsd"><contact:id>FIRST0:SH159793</contact:id></contact:delete></delete><extension><eis:extdata xmlns:eis="https://epp.tld.ee/schema/eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/eis-1.0.xsd eis-1.0.xsd"><eis:ident cc="EE" type="priv">37605030299</eis:ident><eis:legalDocument type="pdf">dGVzdCBmYWlsCg==</eis:legalDocument></eis:extdata></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'contact_delete with extdata build');
+is($rc->is_success(),1,'contact_delete with extdata is_success');
+
+# ident_cc_attr not valid
+throws_ok { $dri->contact_delete($co, {legal_document=>$legal_document, legal_document_attr=>$legal_document_attr, ident=>'37605030299', ident_type_attr=>'priv', ident_cc_attr=>'EEE'}) } qr/ident_cc_attr can only have 2 chars!/, 'contact_delete extdata - with non valid ident_cc_attr';
+
+# ident_type_attr not valid
+throws_ok { $dri->contact_delete($co, {legal_document=>$legal_document, legal_document_attr=>$legal_document_attr, ident=>'37605030299', ident_type_attr=>'foobar', ident_cc_attr=>'EE'}) } qr/ident_type_attr type is not valid!/, 'contact_delete extdata - with non valid ident_type_attr';
+
+####################################################################################################
 
 
 ####################################################################################################
