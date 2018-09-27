@@ -1,4 +1,4 @@
-## Domain Registry Interface, InternetEE (.EE)
+## Domain Registry Interface, Handling of contact data for InternetEE (.EE)
 ##
 ## Copyright (c) 2018 Patrick Mevzek <netdri@dotandco.com>. All rights reserved.
 ##           (c) 2018 Michael Holloway <michael@thedarkwinter.com>. All rights reserved.
@@ -14,25 +14,27 @@
 ## See the LICENSE file that comes with this distribution for more details.
 ####################################################################################################
 
-package Net::DRI::DRD::InternetEE;
+package Net::DRI::Data::Contact::InternetEE;
 
 use strict;
 use warnings;
-use Net::DRI::Data::Contact::InternetEE;
 
-use base qw/Net::DRI::DRD/;
+use base qw/Net::DRI::Data::Contact/;
+use Net::DRI::Exception;
+use Net::DRI::Util;
 
-__PACKAGE__->make_exception_for_unavailable_operations(qw/contact_transfer contact_transfer_start contact_transfer_stop contact_transfer_query contact_transfer_accept contact_transfer_refuse contact_update_status contact_update_status_add contact_update_status_del contact_update_status_set/);
+__PACKAGE__->register_attributes(qw(ident ident_type_attr ident_cc_attr legal_document legal_document_attr));
 
 =pod
 
 =head1 NAME
 
-Net::DRI::DRD::InternetEE - .EE
+Net::DRI::Data::Contact::InternetEE - Handle InternetEE (.EE) contact data for Net::DRI
 
 =head1 DESCRIPTION
 
-Please see the README file for details.
+This subclass of Net::DRI::Data::Contact adds accessors and validation for
+.EE specific data.
 
 =head1 SUPPORT
 
@@ -44,7 +46,7 @@ Please also see the SUPPORT file in the distribution.
 
 =head1 SEE ALSO
 
-E<lt>http://www.dotandco.com/services/software/Net-DRI/E<gt>
+http://www.dotandco.com/services/software/Net-DRI/
 
 =head1 AUTHOR
 
@@ -68,32 +70,32 @@ See the LICENSE file that comes with this distribution for more details.
 
 ####################################################################################################
 
-sub new
+sub validate
 {
- my $class=shift;
- my $self=$class->SUPER::new(@_);
- $self->{info}->{host_as_attr}=2;
- $self->{info}->{contact_i18n}=2; ## INT only. Their schemas list both but their examples only display INT!
- return $self;
+ my ($self,$change)=@_;
+ $change||=0;
+ my @errs;
+
+ $self->SUPER::validate($change); ## will trigger an Exception if problem
+
+ if (!$change)
+ {
+  Net::DRI::Exception::usererr_insufficient_parameters('ident (contact identifier) is mandatory') unless ($self->ident() && $self->ident_type_attr() && $self->ident_cc_attr());
+ }
+
+ push @errs, 'org' if ($self->org()); # org is not supported
+ push @errs, 'fax' if ($self->fax()); # fax is not supported
+
+ Net::DRI::Exception::usererr_invalid_parameters('Invalid contact information: '.join('/',@errs)) if @errs;
+
+ return 1; ## everything ok.
 }
 
-sub periods  { return map { DateTime::Duration->new(months => $_) } (1..120); } # they also accept unit="d" but not using here! Examples only use "y/m"
-sub name     { return 'InternetEE'; }
-sub tlds     { return (qw/ee/, map { $_.'.ee'} qw/com edu fie lib med org pri/ ); } # I got them from here: https://en.wikipedia.org/wiki/.ee
-sub object_types { return qw(domain contact); }
-sub profile_types { return qw/epp/; }
-
-sub transport_protocol_default
+sub init
 {
- my ($self,$type)=@_;
- return ('Net::DRI::Transport::Socket',{ 'ssl_version'=>'TLSv12', 'ssl_cipher_list' => undef },'Net::DRI::Protocol::EPP::Extensions::InternetEE',{}) if $type eq 'epp';
- return;
-}
-
-sub set_factories
-{
- my ($self,$po)=@_;
- $po->factories('contact',sub { return Net::DRI::Data::Contact::InternetEE->new(@_); });
+ my ($self,$what,$ndr)=@_;
+ my $a=$self->auth();
+ $self->auth({pw=>''}) unless ($a && (ref($a) eq 'HASH') && exists($a->{pw})); ## Mandatory but can be empty for create and info commands
  return;
 }
 

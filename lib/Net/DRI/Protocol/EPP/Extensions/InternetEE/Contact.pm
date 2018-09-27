@@ -74,9 +74,10 @@ sub register_commands
  my ($class,$version)=@_;
  my %tmp=(
           check             => [ undef, undef ],
-        #   create            => [ \&create, undef ],
+          create            => [ \&create, undef ],
           delete            => [ \&delete, undef ],
         #   update            => [ \&update, undef ],
+          # info              => [ undef, \&info_parse ]
          );
  $tmp{check_multi}=$tmp{check};
 
@@ -85,7 +86,31 @@ sub register_commands
 
 ####################################################################################################
 
+sub create
+{
+  my ($epp,$contact)=@_;
+  # return unless ( $contact->{'legal_document'} || $contact->{'ident'} ); # FIXME: do we need legal_document???? Specs say it's optional. Need to confirm
+  return unless ( $contact->{'ident'} );
+
+  my $mes=$epp->message();
+  Net::DRI::Protocol::EPP::Extensions::InternetEE::Domain::eis_extdata_build_command($epp,$contact,$contact,$mes);
+
+  return;
+}
+
 sub delete
+{
+  my ($epp,$contact)=@_;
+  # return unless ( $contact->{'legal_document'} || $contact->{'ident'} ); # FIXME: do we need legal_document???? Specs say it's optional. Need to confirm
+  return unless ( $contact->{'ident'} );
+
+  my $mes=$epp->message();
+  Net::DRI::Protocol::EPP::Extensions::InternetEE::Domain::eis_extdata_build_command($epp,$contact,$contact,$mes);
+
+  return;
+}
+
+sub info_parse
 {
   my ($epp,$contact,$rd)=@_;
   return unless ( $rd->{'legal_document'} || $rd->{'ident'} );

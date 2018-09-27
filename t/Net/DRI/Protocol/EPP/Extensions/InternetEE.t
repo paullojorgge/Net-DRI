@@ -7,7 +7,7 @@ use Net::DRI;
 use Net::DRI::Data::Raw;
 use DateTime::Duration;
 
-use Test::More tests => 151;
+use Test::More tests => 182;
 use Test::Exception;
 
 use Data::Dumper;
@@ -33,7 +33,7 @@ print $@->as_string() if $@;
 my $rc;
 my $s;
 my $d;
-my ($dh,@c,$toc,$csadd,$csdel,$cs,$c1,$c2,$c3,$secdns,$co);
+my ($dh,@c,$toc,$csadd,$csdel,$cs,$c1,$c2,$c3,$secdns,$co,$co2);
 my ($legal_document,$legal_document_attr,$reserved);
 my ($ident,$ident_type,$ident_cc);
 
@@ -388,20 +388,104 @@ is($rc->is_success(),1,'contact_delete is_success');
 
 ## Contact delete with extdata
 $R2='';
-$co=$dri->local_object('contact')->srid('FIRST0:SH159793');
-$legal_document = 'dGVzdCBmYWlsCg==';
-$legal_document_attr = 'pdf';
-$rc=$dri->contact_delete($co, {legal_document=>$legal_document, legal_document_attr=>$legal_document_attr, ident=>'37605030299', ident_type_attr=>'priv', ident_cc_attr=>'EE'});
+$co2=$dri->local_object('contact')->srid('FIRST0:SH159793');
+$co2->legal_document('dGVzdCBmYWlsCg==');
+$co2->legal_document_attr('pdf');
+$co2->ident('37605030299');
+$co2->ident_type_attr('priv');
+$co2->ident_cc_attr('EE');
+$rc=$dri->contact_delete($co2);
 is($R1,$E1.'<command><delete><contact:delete xmlns:contact="https://epp.tld.ee/schema/contact-ee-1.1.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/contact-ee-1.1.xsd contact-ee-1.1.xsd"><contact:id>FIRST0:SH159793</contact:id></contact:delete></delete><extension><eis:extdata xmlns:eis="https://epp.tld.ee/schema/eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/eis-1.0.xsd eis-1.0.xsd"><eis:ident cc="EE" type="priv">37605030299</eis:ident><eis:legalDocument type="pdf">dGVzdCBmYWlsCg==</eis:legalDocument></eis:extdata></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'contact_delete with extdata build');
 is($rc->is_success(),1,'contact_delete with extdata is_success');
 
 # ident_cc_attr not valid
-throws_ok { $dri->contact_delete($co, {legal_document=>$legal_document, legal_document_attr=>$legal_document_attr, ident=>'37605030299', ident_type_attr=>'priv', ident_cc_attr=>'EEE'}) } qr/ident_cc_attr can only have 2 chars!/, 'contact_delete extdata - with non valid ident_cc_attr';
+$co2->ident_cc_attr('EEE');
+throws_ok { $dri->contact_delete($co2) } qr/ident_cc_attr can only have 2 chars!/, 'contact_delete extdata - with non valid ident_cc_attr';
 
 # ident_type_attr not valid
-throws_ok { $dri->contact_delete($co, {legal_document=>$legal_document, legal_document_attr=>$legal_document_attr, ident=>'37605030299', ident_type_attr=>'foobar', ident_cc_attr=>'EE'}) } qr/ident_type_attr type is not valid!/, 'contact_delete extdata - with non valid ident_type_attr';
+$co2->ident_cc_attr('EE');
+$co2->ident_type_attr('foobar');
+throws_ok { $dri->contact_delete($co2) } qr/ident_type_attr type is not valid!/, 'contact_delete extdata - with non valid ident_type_attr';
+####################################################################################################
 
 ####################################################################################################
+## Contact info
+$R2=$E1.'<response>'.r().'<resData><contact:infData xmlns:contact="https://epp.tld.ee/schema/contact-ee-1.1.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/contact-ee-1.1.xsd contact-ee-1.1.xsd"><contact:id>FIXED:INFO-4444</contact:id><contact:roid>EIS-30</contact:roid><contact:status s="ok"/><contact:postalInfo type="int"><contact:name>Johnny Awesome</contact:name><contact:addr><contact:street>Short street 11</contact:street><contact:city>Tallinn</contact:city><contact:sp/><contact:pc>11111</contact:pc><contact:cc>EE</contact:cc></contact:addr></contact:postalInfo><contact:voice>+372.12345678</contact:voice><contact:email>jerod@monahan.name</contact:email><contact:clID>fixed registrar</contact:clID><contact:crID>TEST-CREATOR</contact:crID><contact:crDate>2015-09-09T09:40:57Z</contact:crDate><contact:authInfo><contact:pw>password</contact:pw></contact:authInfo></contact:infData></resData><extension><eis:extdata xmlns:eis="https://epp.tld.ee/schema/eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/eis-1.0.xsd eis-1.0.xsd"><eis:ident type="priv" cc="EE">37605030299</eis:ident></eis:extdata></extension>'.$TRID.'</response>'.$E2;
+$co=$dri->local_object('contact')->srid('FIXED:INFO-4444')->auth({pw=>'password'});
+$rc=$dri->contact_info($co);
+is($R1,$E1.'<command><info><contact:info xmlns:contact="https://epp.tld.ee/schema/contact-ee-1.1.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/contact-ee-1.1.xsd contact-ee-1.1.xsd"><contact:id>FIXED:INFO-4444</contact:id><contact:authInfo><contact:pw>password</contact:pw></contact:authInfo></contact:info></info><clTRID>ABC-12345</clTRID></command>'.$E2,'contact_info build');
+is($rc->is_success(),1,'contact_info is_success');
+is($dri->get_info('action'),'info','contact_info get_info(action)');
+is($dri->get_info('exist'),1,'contact_info get_info(exist)');
+$co=$dri->get_info('self');
+# print Dumper($co);
+isa_ok($co,'Net::DRI::Data::Contact','contact_info get_info(self)');
+is($co->srid(),'FIXED:INFO-4444','contact_info get_info(self) srid');
+is($co->roid(),'EIS-30','contact_info get_info(self) roid');
+$s=$dri->get_info('status');
+isa_ok($s,'Net::DRI::Data::StatusList','contact_info get_info(status)');
+is_deeply([$s->list_status()],['ok'],'contact_info get_info(status) list_status');
+is([$co->name()]->[1],'Johnny Awesome','contact_info get_info(self) name');
+is_deeply([$co->street()]->[1],['Short street 11'],'contact_info get_info(self) street');
+is([$co->city()]->[1],'Tallinn','contact_info get_info(self) city');
+is([$co->sp()]->[1],'','contact_info get_info(self) sp');
+is([$co->pc()]->[1],'11111','contact_info get_info(self) pc');
+is([$co->cc()]->[1],'EE','contact_info get_info(self) cc');
+is($co->voice(),'+372.12345678','contact_info get_info(self) voice');
+is($co->email(),'jerod@monahan.name','contact_info get_info(self) email');
+is($dri->get_info('clID'),'fixed registrar','contact_info get_info(clID)');
+is($dri->get_info('crID'),'TEST-CREATOR','contact_info get_info(crID)'),
+$d=$dri->get_info('crDate');
+isa_ok($d,'DateTime','contact_info get_info(crDate)');
+is("".$d,'2015-09-09T09:40:57','contact_info get_info(crDate) value');
+is_deeply($co->auth(),{pw=>'password'},'contact_info get_info(self) auth');
+###
+# TODO: add info_parse for ident!!!
+###
+####################################################################################################
+
+####################################################################################################
+## Contact create
+$R2=$E1.'<response>'.r().'<resData><contact:creData xmlns:contact="https://epp.tld.ee/schema/contact-ee-1.1.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/contact-ee-1.1.xsd contact-ee-1.1.xsd"><contact:id>FIRST0:84FC4612</contact:id><contact:crDate>2015-09-09T09:40:29Z</contact:crDate></contact:creData></resData>'.$TRID.'</response>'.$E2;
+$co=$dri->local_object('contact')->srid('abc12345');
+$co->name('John Doe');
+$co->street(['123 Example']);
+$co->city('Tallinn');
+$co->pc('123456');
+$co->cc('EE');
+$co->voice('+372.1234567');
+$co->email('test@example.example');
+$co->auth({pw=>'2fooBAR'});
+$co->legal_document('dGVzdCBmYWlsCg==');
+$co->legal_document_attr('pdf');
+$co->ident('37605030299');
+$co->ident_type_attr('priv');
+$co->ident_cc_attr('EE');
+$rc=$dri->contact_create($co);
+is_string($R1,$E1.'<command><create><contact:create xmlns:contact="https://epp.tld.ee/schema/contact-ee-1.1.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/contact-ee-1.1.xsd contact-ee-1.1.xsd"><contact:id>abc12345</contact:id><contact:postalInfo type="int"><contact:name>John Doe</contact:name><contact:addr><contact:street>123 Example</contact:street><contact:city>Tallinn</contact:city><contact:pc>123456</contact:pc><contact:cc>EE</contact:cc></contact:addr></contact:postalInfo><contact:voice>+372.1234567</contact:voice><contact:email>test@example.example</contact:email><contact:authInfo><contact:pw>2fooBAR</contact:pw></contact:authInfo></contact:create></create><extension><eis:extdata xmlns:eis="https://epp.tld.ee/schema/eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/eis-1.0.xsd eis-1.0.xsd"><eis:ident cc="EE" type="priv">37605030299</eis:ident><eis:legalDocument type="pdf">dGVzdCBmYWlsCg==</eis:legalDocument></eis:extdata></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'contact_create build');
+is($rc->is_success(),1,'contact_create is_success');
+
+# org not valid
+$co->org('Example Inc.');
+throws_ok { $dri->contact_create($co) } qr/Invalid contact information: org/, 'contact_create - with non valid org';
+
+# org/fax not valid
+$co->fax('+372.123456789');
+throws_ok { $dri->contact_create($co) } qr/Invalid contact information: org\/fax/, 'contact_create - with non valid org/fax';
+
+# ident is mandatory
+delete $co->{org};
+delete $co->{fax};
+delete $co->{ident};
+throws_ok { $dri->contact_create($co) } qr/contact identifier/, 'contact_create - missing mandatory ident';
+
+# # TODO: add test in case legal_document is mandatory (I don't think it's!)
+# delete $co->{org};
+# delete $co->{fax};
+# delete $co->{ident};
+# throws_ok { $dri->contact_create($co) } qr/contact identifier/, 'contact_create - missing mandatory ident';
+####################################################################################################
+
 
 
 ####################################################################################################
