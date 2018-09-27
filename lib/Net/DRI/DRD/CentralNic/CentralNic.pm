@@ -107,7 +107,7 @@ sub tlds {
   my @nets = (map { $_.'.net' } qw/uk se gb jp hu in/);
   my @orgs = (map { $_.'.org' } qw/us ae/);
   my @others = qw/pw com.de com.se co.nl fm radio.fm radio.am/;
-  my @ngtlds = qw/art bar basketball best budapest ceo college contact design fan fans feedback forum fun gent host icu ink love observer online ooo pid press protection realty reit rent rest rugby security site space storage store tech theatre tickets website wiki wme xyz/;
+  my @ngtlds = qw/art bar basketball best budapest ceo college contact design fans feedback forum fun gent host icu ink love observer online ooo pid press protection realty reit rent rest rugby security site space storage store tech theatre tickets website wiki wme xyz/;
   my @ngtlds_contested = qw/hotel gay mail/; # some of these might go to other registries
   return (@coms,@nets,@orgs,@others,@ngtlds);
 }
@@ -118,7 +118,7 @@ sub profile_types { return qw/epp/; }
 sub transport_protocol_default
 {
  my ($self,$type)=@_;
- return ('Net::DRI::Transport::Socket',{},'Net::DRI::Protocol::EPP::Extensions::CentralNic',{'brown_fee_version' => '0.8'}) if $type eq 'epp';
+ return ('Net::DRI::Transport::Socket',{},'Net::DRI::Protocol::EPP::Extensions::CentralNic',{'brown_fee_version' => '0.5'}) if $type eq 'epp';
  return;
 }
 
