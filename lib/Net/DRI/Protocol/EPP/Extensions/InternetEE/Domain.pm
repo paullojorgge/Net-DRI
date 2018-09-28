@@ -77,7 +77,7 @@ sub register_commands
           create            => [ \&create, undef ],
           delete            => [ \&delete, undef ],
           update            => [ \&update, undef ],
-          transfer_query	=> [ \&transfer_extdata, undef ],
+          transfer_query    => [ \&transfer_extdata, undef ],
           transfer_request	=> [ \&transfer_extdata, undef ],
           transfer_cancel 	=> [ \&transfer_extdata, undef ],
           transfer_answer 	=> [ \&transfer_extdata, undef ],

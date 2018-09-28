@@ -76,8 +76,8 @@ sub register_commands
           check             => [ undef, undef ],
           create            => [ \&create, undef ],
           delete            => [ \&delete, undef ],
-        #   update            => [ \&update, undef ],
-          # info              => [ undef, \&info_parse ]
+          update            => [ \&update, undef ],
+          info              => [ undef, \&info_parse ]
          );
  $tmp{check_multi}=$tmp{check};
 
@@ -110,13 +110,48 @@ sub delete
   return;
 }
 
-sub info_parse
+sub update
 {
-  my ($epp,$contact,$rd)=@_;
-  return unless ( $rd->{'legal_document'} || $rd->{'ident'} );
+  my ($epp,$contact)=@_;
+  return unless ( $contact->{'legal_document'} || $contact->{'ident'} );
 
   my $mes=$epp->message();
-  Net::DRI::Protocol::EPP::Extensions::InternetEE::Domain::eis_extdata_build_command($epp,$contact,$rd,$mes);
+  Net::DRI::Protocol::EPP::Extensions::InternetEE::Domain::eis_extdata_build_command($epp,$contact,$contact,$mes);
+
+  return;
+}
+
+# README: do they return for legal_document and reserved? schema doesn't specify and no samples but lets had just in case :)
+# for this case samples are only for contact object. If it's done for domain move/create function on Domain::eis_extdata_info_parse()
+sub info_parse
+{
+  my ($po, $otype, $oaction, $oname, $rinfo) = @_;
+  my $mes = $po->message();
+  return unless $mes->is_success();
+
+  my $s = $rinfo->{contact}->{$oname}->{self};
+
+  my $node_extension = $mes->node_extension();
+  return unless $node_extension;
+
+  foreach my $el (Net::DRI::Util::xml_list_children($node_extension)) {
+    my ($name, $content) = @$el;
+    if ($name && $name eq 'extdata') {
+      foreach my $el2 (Net::DRI::Util::xml_list_children($content)) {
+        my ($name2, $content2) = @$el2;
+        if ($name2 && lc($name2) eq 'ident') {
+          $s->{$name2} = $content2->textContent();
+          $s->{$name2.'_type_attr'} = $content2->getAttribute('type') if $content2->getAttribute('type');
+          $s->{$name2.'_cc_attr'} = $content2->getAttribute('cc') if $content2->getAttribute('cc');
+        } elsif ($name2 && lc($name2) eq 'legal_document') {
+          $s->{$name2} = $content2->textContent();
+          $s->{$name2.'_type_attr'} = $content2->getAttribute('type') if $content2->getAttribute('type');
+        } elsif ($name2 && lc($name2) eq 'reserved') {
+          $s->{$name2} = $content2->textContent();
+        }
+      }
+    }
+  }
 
   return;
 }

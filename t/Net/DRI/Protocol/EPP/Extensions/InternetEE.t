@@ -7,7 +7,7 @@ use Net::DRI;
 use Net::DRI::Data::Raw;
 use DateTime::Duration;
 
-use Test::More tests => 182;
+use Test::More tests => 188;
 use Test::Exception;
 
 use Data::Dumper;
@@ -418,7 +418,6 @@ is($rc->is_success(),1,'contact_info is_success');
 is($dri->get_info('action'),'info','contact_info get_info(action)');
 is($dri->get_info('exist'),1,'contact_info get_info(exist)');
 $co=$dri->get_info('self');
-# print Dumper($co);
 isa_ok($co,'Net::DRI::Data::Contact','contact_info get_info(self)');
 is($co->srid(),'FIXED:INFO-4444','contact_info get_info(self) srid');
 is($co->roid(),'EIS-30','contact_info get_info(self) roid');
@@ -439,9 +438,9 @@ $d=$dri->get_info('crDate');
 isa_ok($d,'DateTime','contact_info get_info(crDate)');
 is("".$d,'2015-09-09T09:40:57','contact_info get_info(crDate) value');
 is_deeply($co->auth(),{pw=>'password'},'contact_info get_info(self) auth');
-###
-# TODO: add info_parse for ident!!!
-###
+is($co->ident(),'37605030299','contact_info get_info(ident)');
+is($co->ident_type_attr(),'priv','contact_info get_info(ident_type_attr)');
+is($co->ident_cc_attr(),'EE','contact_info get_info(ident_cc_attr)');
 ####################################################################################################
 
 ####################################################################################################
@@ -484,6 +483,39 @@ throws_ok { $dri->contact_create($co) } qr/contact identifier/, 'contact_create 
 # delete $co->{fax};
 # delete $co->{ident};
 # throws_ok { $dri->contact_create($co) } qr/contact identifier/, 'contact_create - missing mandatory ident';
+####################################################################################################
+
+####################################################################################################
+## Contact update
+$R2='';
+$co=$dri->local_object('contact')->srid('FIRST0:SH8013');
+$toc=$dri->local_object('changes');
+$co2=$dri->local_object('contact');
+$co2->name('John Doe Edited');
+$co2->voice('+372.7654321');
+$co2->email('edited@example.example');
+$co2->auth({pw=>'password'});
+$co->legal_document('dGVzdCBmYWlsCg==');
+$co->legal_document_attr('pdf');
+$toc->set('info',$co2);
+$rc=$dri->contact_update($co,$toc);
+is_string($R1,$E1.'<command><update><contact:update xmlns:contact="https://epp.tld.ee/schema/contact-ee-1.1.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/contact-ee-1.1.xsd contact-ee-1.1.xsd"><contact:id>FIRST0:SH8013</contact:id><contact:chg><contact:postalInfo type="int"><contact:name>John Doe Edited</contact:name></contact:postalInfo><contact:voice>+372.7654321</contact:voice><contact:email>edited@example.example</contact:email><contact:authInfo><contact:pw>password</contact:pw></contact:authInfo></contact:chg></contact:update></update><extension><eis:extdata xmlns:eis="https://epp.tld.ee/schema/eis-1.0.xsd" xsi:schemaLocation="https://epp.tld.ee/schema/eis-1.0.xsd eis-1.0.xsd"><eis:legalDocument type="pdf">dGVzdCBmYWlsCg==</eis:legalDocument></eis:extdata></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'contact_update build');
+is($rc->is_success(),1,'contact_update is_success');
+
+## Contact update with non supported org field
+$R2='';
+$co=$dri->local_object('contact')->srid('FIRST0:SH8013');
+$toc=$dri->local_object('changes');
+$co2=$dri->local_object('contact');
+$co2->org('should not save');
+$co2->name('John Doe Edited');
+$co2->voice('+372.7654321');
+$co2->email('edited@example.example');
+$co2->auth({pw=>'password'});
+$co->legal_document('dGVzdCBmYWlsCg==');
+$co->legal_document_attr('pdf');
+$toc->set('info',$co2);
+throws_ok { $dri->contact_update($co,$toc) } qr/Invalid contact information: org/, 'contact_update - with non supported org field';
 ####################################################################################################
 
 
