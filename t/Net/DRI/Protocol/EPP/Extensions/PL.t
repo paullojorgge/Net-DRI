@@ -7,7 +7,7 @@ use Net::DRI;
 use Net::DRI::Data::Raw;
 use DateTime::Duration;
 
-use Test::More tests => 511;
+use Test::More tests => 512;
 use Test::Exception;
 eval { no warnings; require Test::LongString; Test::LongString->import(max => 100); $Test::LongString::Context=50; };
 if ( $@ ) { no strict 'refs'; *{'main::is_string'}=\&main::is; }
@@ -81,6 +81,12 @@ is($dri->get_info('crDate'),'2009-09-09T09:09:09','domain_info get_info(crDate)'
 is($dri->get_info('exDate'),'2015-09-09T09:09:09','domain_info get_info(exDate)');
 is($dri->get_info('upDate'),'2014-09-09T09:09:09','domain_info get_info(upDate)');
 is($dri->get_info('trDate'),'2013-09-09T09:09:09','domain_info get_info(trDate)');
+
+# domain_info test secdns info parse
+$R2=$E1.'<response>'.r().'<resData><domain:infData xmlns:domain="http://www.dns.pl/nask-epp-schema/domain-2.1" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/domain-2.1 domain-2.1.xsd"><domain:name>inftestsecdns.pl</domain:name><domain:roid>112233-NASK</domain:roid><domain:status s="ok" lang="en"></domain:status><domain:registrant>foo_006966</domain:registrant><domain:ns>nsgbr.comlaude.co.uk</domain:ns><domain:ns>nssui.comlaude.ch</domain:ns><domain:ns>nsusa.comlaude.net</domain:ns><domain:clID>foo</domain:clID><domain:crID>bar</domain:crID><domain:crDate>2009-08-13T09:17:58.000Z</domain:crDate><domain:upID>comlaude</domain:upID><domain:upDate>2021-11-17T13:47:04.000Z</domain:upDate><domain:exDate>2022-08-13T09:17:58.000Z</domain:exDate><domain:trDate>2014-05-13T07:22:10.000Z</domain:trDate><domain:authInfo><domain:pw>foobarpw</domain:pw></domain:authInfo></domain:infData></resData><extension><secDNS:infData xmlns:secDNS="http://www.dns.pl/nask-epp-schema/secDNS-2.1" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/secDNS-2.1 secDNS-2.1.xsd"><secDNS:dsData><secDNS:keyTag>48553</secDNS:keyTag><secDNS:alg>13</secDNS:alg><secDNS:digestType>2</secDNS:digestType><secDNS:digest>0882F54A18323ADFD9CF22DD6E2DE8D67A0A693FA938804907E6737A544F4DD0</secDNS:digest></secDNS:dsData></secDNS:infData></extension>'.$TRID.'</response>'.$E2;
+$rc=$dri->domain_info('inftestsecdns.pl');
+is_deeply($rc->get_data('secdns'),[{keyTag=>48553,alg=>13,digestType=>2,digest=>'0882F54A18323ADFD9CF22DD6E2DE8D67A0A693FA938804907E6737A544F4DD0'}],'domain_info parse NASK secDNS-2.1 dsData');
+
 
 ## Examples 3,4,5,6,7,8 are standard EPP, thus not tested here
 
