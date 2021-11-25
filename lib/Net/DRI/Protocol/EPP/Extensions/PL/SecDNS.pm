@@ -66,13 +66,17 @@ See the LICENSE file that comes with this distribution for more details.
 sub register_commands
 {
  my ($class,$version)=@_;
+ my %s=(
+       'connect' => [ undef, \&Net::DRI::Protocol::EPP::Extensions::SecDNS::parse_greeting ],
+        noop      => [ undef, \&Net::DRI::Protocol::EPP::Extensions::SecDNS::parse_greeting ],
+       );
  my %d=(
         info      => [ undef, \&Net::DRI::Protocol::EPP::Extensions::SecDNS::info_parse ],
         create    => [ \&Net::DRI::Protocol::EPP::Extensions::SecDNS::create, undef ],
         update    => [ \&update, undef ],
        );
 
- return { 'domain' => \%d };
+ return { 'domain' => \%d, 'session' => \%s };
 }
 
 sub capabilities_add { return (['domain_update','secdns',['add','del']]); }
