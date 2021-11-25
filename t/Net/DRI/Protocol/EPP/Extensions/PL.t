@@ -7,7 +7,7 @@ use Net::DRI;
 use Net::DRI::Data::Raw;
 use DateTime::Duration;
 
-use Test::More tests => 512;
+use Test::More tests => 514;
 use Test::Exception;
 eval { no warnings; require Test::LongString; Test::LongString->import(max => 100); $Test::LongString::Context=50; };
 if ( $@ ) { no strict 'refs'; *{'main::is_string'}=\&main::is; }
@@ -941,6 +941,25 @@ $toc->del('secdns',
 $rc=$dri->domain_update('example4.pl',$toc);
 is($R1,$E1.'<command><update><domain:update xmlns:domain="http://www.dns.pl/nask-epp-schema/domain-2.1" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/domain-2.1 domain-2.1.xsd"><domain:name>example4.pl</domain:name></domain:update></update><extension><secDNS:update xmlns:secDNS="http://www.dns.pl/nask-epp-schema/secDNS-2.1" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/secDNS-2.1 secDNS-2.1.xsd"><secDNS:rem><secDNS:dsData><secDNS:keyTag>346</secDNS:keyTag><secDNS:alg>3</secDNS:alg><secDNS:digestType>1</secDNS:digestType><secDNS:digest>9908AF46F00D3F5CE2283CF99B9E50F1CA1DCAC5</secDNS:digest></secDNS:dsData><secDNS:dsData><secDNS:keyTag>23</secDNS:keyTag><secDNS:alg>3</secDNS:alg><secDNS:digestType>1</secDNS:digestType><secDNS:digest>9908AF46F00D3F5CE2283CF99B9E50F1CA1DCAC6</secDNS:digest></secDNS:dsData></secDNS:rem></secDNS:update></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_update (deletion of DS records) build');
 is($rc->is_success(),1,'domain_update (deletion of DS records) is_success');
+
+## domain update - to test dnssec both add/del
+## README: "The order of the <secDNS:rem> and <secDNS:add> elements is critical when both <secDNS:rem> and <secDNS:add> elements are given. The <secDNS:rem> element must be defined first."
+$R2='';
+$toc=$dri->local_object('changes');
+$toc->add('secdns',
+  [
+    {keyTag=>'346',alg=>'3',digestType=>'1',digest=>'9908AF46F00D3F5CE2283CF99B9E50F1CA1DCAC3'},
+    {keyTag=>'23',alg=>'3',digestType=>'1',digest=>'9908AF46F00D3F5CE2283CF99B9E50F1CA1DCAC4'},
+    {keyTag=>'45',alg=>'3',digestType=>'1',digest=>'9908AF46F00D3F5CE2283CF99B9E50F1CA1DCAC5'},
+  ]);
+$toc->del('secdns',
+  [
+    {keyTag=>'346',alg=>'3',digestType=>'1',digest=>'9908AF46F00D3F5CE2283CF99B9E50F1CA1DCAC1'},
+    {keyTag=>'23',alg=>'3',digestType=>'1',digest=>'9908AF46F00D3F5CE2283CF99B9E50F1CA1DCAC2'}
+  ]);
+$rc=$dri->domain_update('example5.pl',$toc);
+is($R1,$E1.'<command><update><domain:update xmlns:domain="http://www.dns.pl/nask-epp-schema/domain-2.1" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/domain-2.1 domain-2.1.xsd"><domain:name>example5.pl</domain:name></domain:update></update><extension><secDNS:update xmlns:secDNS="http://www.dns.pl/nask-epp-schema/secDNS-2.1" xsi:schemaLocation="http://www.dns.pl/nask-epp-schema/secDNS-2.1 secDNS-2.1.xsd"><secDNS:rem><secDNS:dsData><secDNS:keyTag>346</secDNS:keyTag><secDNS:alg>3</secDNS:alg><secDNS:digestType>1</secDNS:digestType><secDNS:digest>9908AF46F00D3F5CE2283CF99B9E50F1CA1DCAC1</secDNS:digest></secDNS:dsData><secDNS:dsData><secDNS:keyTag>23</secDNS:keyTag><secDNS:alg>3</secDNS:alg><secDNS:digestType>1</secDNS:digestType><secDNS:digest>9908AF46F00D3F5CE2283CF99B9E50F1CA1DCAC2</secDNS:digest></secDNS:dsData></secDNS:rem><secDNS:add><secDNS:dsData><secDNS:keyTag>346</secDNS:keyTag><secDNS:alg>3</secDNS:alg><secDNS:digestType>1</secDNS:digestType><secDNS:digest>9908AF46F00D3F5CE2283CF99B9E50F1CA1DCAC3</secDNS:digest></secDNS:dsData><secDNS:dsData><secDNS:keyTag>23</secDNS:keyTag><secDNS:alg>3</secDNS:alg><secDNS:digestType>1</secDNS:digestType><secDNS:digest>9908AF46F00D3F5CE2283CF99B9E50F1CA1DCAC4</secDNS:digest></secDNS:dsData><secDNS:dsData><secDNS:keyTag>45</secDNS:keyTag><secDNS:alg>3</secDNS:alg><secDNS:digestType>1</secDNS:digestType><secDNS:digest>9908AF46F00D3F5CE2283CF99B9E50F1CA1DCAC5</secDNS:digest></secDNS:dsData></secDNS:add></secDNS:update></extension><clTRID>ABC-12345</clTRID></command>'.$E2,'domain_update (deletion+addition of DS records) build');
+is($rc->is_success(),1,'domain_update (deletion + addition of DS records) is_success');
 
 ## EPP Session just to test if DS record schema is fine :)
 $R2=$E1.'<greeting><svID>NASK EPP Registry</svID><svDate>2013-07-25T13:39:35.970Z</svDate><svcMenu><version>1.0</version><lang>en</lang><lang>pl</lang><objURI>http://www.dns.pl/nask-epp-schema/contact-2.1</objURI><objURI>http://www.dns.pl/nask-epp-schema/host-2.1</objURI><objURI>http://www.dns.pl/nask-epp-schema/domain-2.1</objURI><objURI>http://www.dns.pl/nask-epp-schema/future-2.1</objURI><svcExtension><extURI>http://www.dns.pl/nask-epp-schema/extcon-2.1</extURI><extURI>http://www.dns.pl/nask-epp-schema/extdom-2.1</extURI><extURI>http://www.dns.pl/nask-epp-schema/secDNS-2.1</extURI></svcExtension></svcMenu></greeting>'.$E2;
