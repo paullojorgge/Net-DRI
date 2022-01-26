@@ -256,7 +256,7 @@ sub fee_element_parse
   # Fees are kind of loosely defined based on free text description field with refundable, applied, grace-period also possible.
   # The main fee is the total of them all, its not necessarily correct, but there you have it.
   $set->{fee} = 0 unless exists $set->{fee};
-  $set->{fee} += $content->textContent();
+  $set->{fee} += sprintf("%.2f", $content->textContent());
   my $d = 'default';
   if ($content->hasAttribute('description'))
   {
@@ -264,7 +264,7 @@ sub fee_element_parse
     $d = lc $content->getAttribute('description');
     $d =~ s/ /_/g;
     $d = 'early_access_fee' if $d =~ m/early_access/;
-    $set->{"fee_$d"} = 0 + $content->textContent();
+    $set->{"fee_$d"} = $content->textContent() + 0;
     $set->{$d}->{description} =  $content->getAttribute('description');
     push @{$set->{fee_types}}, $d;
   }
@@ -283,7 +283,7 @@ sub fee_element_parse
     $set->{applied} = $content->getAttribute('applied');
     $set->{$d}->{applied} =  $content->getAttribute('applied');
   }
-  $set->{$d}->{fee} = 0+$content->textContent();
+  $set->{$d}->{fee} = $content->textContent()+0;
   return;
 }
 
@@ -318,7 +318,7 @@ sub fee_set_parse
         if ($name2 eq 'period')
         {
           my $unit={y=>'years', m=>'months'}->{$content2->getAttribute('unit')};
-          $set->{command}->{$cmd}->{'duration'} = DateTime::Duration->new($unit => 0+$content2->textContent());
+          $set->{command}->{$cmd}->{'duration'} = DateTime::Duration->new($unit => $content2->textContent()+0);
         } elsif ($name2 eq 'reason')
         {
           $set->{reason} = $content2->textContent();
@@ -353,7 +353,7 @@ sub fee_set_parse
     } elsif ($name eq 'period')
     {
       my $unit={y=>'years',m=>'months'}->{$content->getAttribute('unit')};
-      $set->{'duration'} = DateTime::Duration->new($unit => 0+$content->textContent());
+      $set->{'duration'} = DateTime::Duration->new($unit => $content->textContent()+0);
     } elsif ($name eq 'fee')
     {
       fee_element_parse($version,$content,$set);
@@ -486,7 +486,7 @@ sub transform_parse
       } elsif ($name =~ m/^(fee|balance|creditLimit|credit)/)
       {
         my $k= ($1 eq 'creditLimit') ? 'credit_limit' : $1;
-        $p{$k}=0+$content->textContent();
+        $p{$k}=$content->textContent()+0;
         $p{'description'} = $content->getAttribute('description') if $content->hasAttribute('description');
       }
     }
