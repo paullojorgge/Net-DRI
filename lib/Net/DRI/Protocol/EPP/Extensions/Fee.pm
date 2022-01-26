@@ -255,7 +255,7 @@ sub fee_element_parse
   return unless $content;
   # Fees are kind of loosely defined based on free text description field with refundable, applied, grace-period also possible.
   # The main fee is the total of them all, its not necessarily correct, but there you have it.
-  $set->{fee} = 0 unless exists $set->{fee};
+  $set->{fee} = '0.00' unless exists $set->{fee};
   $set->{fee} += sprintf("%.2f", $content->textContent());
   my $d = 'default';
   if ($content->hasAttribute('description'))

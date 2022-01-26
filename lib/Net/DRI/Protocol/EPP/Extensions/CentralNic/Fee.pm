@@ -224,7 +224,7 @@ sub fee_set_parse
     } elsif ($name eq 'fee')
     # Fees are kind of loosely defined based on free text description field with refundable also possible. This will total it up and concat the description and refundable fields but its only human readable
     {
-      $set->{fee} = 0 unless exists $set->{fee};
+      $set->{fee} = '0.00' unless exists $set->{fee};
       $set->{fee} += sprintf("%.2f", $content->textContent());
       $set->{description} = '' unless exists $set->{description};
       if ($content->hasAttribute('description'))
