@@ -220,12 +220,12 @@ sub fee_set_parse
     } elsif ($name eq 'period')
     {
       my $unit={y=>'years',m=>'months'}->{$content->getAttribute('unit')};
-      $set->{'duration'} = DateTime::Duration->new($unit => $content->textContent()+0);
+      $set->{'duration'} = DateTime::Duration->new($unit => 0+$content->textContent());
     } elsif ($name eq 'fee')
     # Fees are kind of loosely defined based on free text description field with refundable also possible. This will total it up and concat the description and refundable fields but its only human readable
     {
-      $set->{fee} = '0.00' unless exists $set->{fee};
-      $set->{fee} += sprintf("%.2f", $content->textContent());
+      $set->{fee} = 0 unless exists $set->{fee};
+      $set->{fee} += $content->textContent();
       $set->{description} = '' unless exists $set->{description};
       if ($content->hasAttribute('description'))
       {
@@ -326,7 +326,7 @@ sub fee_set_parse_legacy
     } elsif ($name eq 'period')
     {
       my $unit={y=>'years',m=>'months'}->{$content->getAttribute('unit')};
-      $set->{'duration'} = DateTime::Duration->new($unit => $content->textContent()+0);
+      $set->{'duration'} = DateTime::Duration->new($unit => 0+$content->textContent());
     }
   }
 
@@ -536,7 +536,7 @@ sub transform_parse
       } elsif ($name =~ m/^(fee|balance|creditLimit)/)
       {
         my $k= ($1 eq 'creditLimit') ? 'credit_limit' : $1;
-        $p{$k}=$content->textContent()+0;
+        $p{$k}=0+$content->textContent();
       }
     }
     $rinfo->{domain}->{$oname}->{fee}=\%p;

@@ -255,8 +255,8 @@ sub fee_element_parse
   return unless $content;
   # Fees are kind of loosely defined based on free text description field with refundable, applied, grace-period also possible.
   # The main fee is the total of them all, its not necessarily correct, but there you have it.
-  $set->{fee} = '0.00' unless exists $set->{fee};
-  $set->{fee} += sprintf("%.2f", $content->textContent());
+  $set->{fee} = 0 unless exists $set->{fee};
+  $set->{fee} += $content->textContent();
   my $d = 'default';
   if ($content->hasAttribute('description'))
   {
@@ -353,7 +353,7 @@ sub fee_set_parse
     } elsif ($name eq 'period')
     {
       my $unit={y=>'years',m=>'months'}->{$content->getAttribute('unit')};
-      $set->{'duration'} = DateTime::Duration->new($unit => $content->textContent()+0);
+      $set->{'duration'} = DateTime::Duration->new($unit => 0+$content->textContent());
     } elsif ($name eq 'fee')
     {
       fee_element_parse($version,$content,$set);
